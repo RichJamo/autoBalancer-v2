@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>E2E Test Dapp</title>
+  <!-- <link rel="icon" type="image/png" href="metamask-fox.svg"> -->
+
+  <!-- Bootstrap -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.14.1/css/mdb.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/metamask.css" type="text/css">
+  <script src = "./abi.js"></script>
+  <html>
+
+</head>
+
+<body>
+  <main class="container-fluid">
+    <header>
+      <h1 class="text-center">E2E Test Dapp</h1>
+    </header>
+
+    <!-- Part 1 Setting up Basic Actions and Status-->
+    <section>
+      <h3 class="card-title">Status</h3>
+      <div class="row">
+        <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12">
+          <p class="info-text alert alert-primary">Network: <span id="network"></span></p>
+        </div>
+        <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12">
+          <p class="info-text alert alert-secondary">ChainId: <span id="chainId"></span></p>
+        </div>
+        <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12">
+          <p class="info-text alert alert-success">Accounts: <span id="accounts"></span></p>
+        </div>
+
+      </div>
+    </section>
+
+    <section>
+      <div class="row d-flex justify-content-center">
+        <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12">
+          <div class="card">
+            <img class="card-img-top" src="https://metamask.github.io/metamask-docs/ethereum-metamask-chrome.png"
+              alt="Card image cap">
+            <div class="card-body">
+              <h4 class="card-title">Basic Actions</h4>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="connectButton" disabled></button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="getAccounts">eth_accounts</button>
+              <p class="info-text alert alert-secondary">eth_accounts result: <span id="getAccountsResult"></span></p>
+              <p class="info-text alert alert-secondary">MATIC_balance result: <span id="getBalanceResult"></span></p>
+              <p class="info-text alert alert-secondary">USDC_balance result: <span id="getUSDCResult"></span></p>
+              <p class="info-text alert alert-secondary">WBTC_balance result: <span id="getWBTCResult"></span></p>
+              <p class="info-text alert alert-secondary">WMATIC_balance result: <span id="getWMATICResult"></span></p>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="rebalance">Rebalance</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- /Part 1 -->
+
+    <section>
+      <!-- Part 2 Contract-->
+      <!-- <div class="row">
+        <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12 d-flex align-items-stretch">
+          <div class="card full-width">
+            <div class="card-body">
+              <h4 class="card-title">Contract</h4>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="deployButton" disabled>Deploy Contract</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="depositButton" disabled>Deposit</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="withdrawButton" disabled>Withdraw</button>
+              <p class="info-text alert alert-secondary">Contract Status: <span id="contractStatus">Not clicked</span>
+              </p>
+            </div>
+          </div>
+        </div> -->
+        <!-- /Part 2 -->
+
+        <!-- <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12 d-flex align-items-stretch">
+          <div class="card full-width">
+            <div class="card-body">
+              <h4 class="card-title">Send Eth</h4>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="sendButton" disabled>Send</button>
+              <p class="info-text alert alert-info">Contract Status: <span id="contractStatus">Not clicked</span></p>
+              <hr />
+              <h4>Sign Typed Data</h4>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="signTypedData" disabled>Sign</button>
+              <p class="info-text alert alert-warning">Sign Typed Data Result: <span id="signTypedDataResult"></span>
+              </p>
+            </div>
+          </div>
+        </div> -->
+
+        <!-- <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12 d-flex align-items-stretch">
+          <div class="card full-width">
+            <div class="card-body">
+              <h4 class="card-title">Send Tokens</h4>
+              <p class="info-text alert alert-success">Token: <span id="tokenAddress"></span></p>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="createToken" disabled>Create Token</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="transferTokens" disabled>Transfer
+                Tokens</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="approveTokens" disabled>Approve Tokens</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="transferTokensWithoutGas" disabled>Transfer
+                Tokens
+                Without Gas</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="approveTokensWithoutGas" disabled>Approve Tokens
+                Without Gas</button>
+              <p class="info-text alert alert-info">Contract Status: <span id="contractStatus">Not clicked</span></p>
+            </div>
+          </div> -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="node_modules/@metamask/onboarding/dist/metamask-onboarding.bundle.js" defer></script>
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/web3.min.js"></script>
+  <script src="js/truffle-contract.js"></script>
+  <script type="module" src="js/app.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/@metamask/detect-provider/dist/detect-provider.min.js"></script>
+
+</body>
+
+</html>
