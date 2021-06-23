@@ -6,15 +6,21 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-  <title>E2E Test Dapp</title>
+  <title>Auto-Rebalancer</title>
   <!-- <link rel="icon" type="image/png" href="metamask-fox.svg"> -->
 
   <!-- Bootstrap -->
-  <link href="css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.14.1/css/mdb.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/metamask.css" type="text/css">
+  <link href = "css/bootstrap.min.css" rel="stylesheet">
+  <link rel = "stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+  <link href = "https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.14.1/css/mdb.min.css" rel="stylesheet">
+  <link rel = "stylesheet" href="css/metamask.css" type="text/css">
   <script src = "./abi.js"></script>
+  <script src = "./chainlink_abi.js"></script>
+  <script src = "./router_abi.js"></script>
+  <script src = "./router_abi_QS.js"></script>
+  <script src="../node_modules/@metamask/onboarding/dist/metamask-onboarding.bundle.js" defer></script>
+  <script src="../node_modules/ethers/dist/ethers.umd.min.js" type="application/javascript"></script>
+
   <html>
 
 </head>
@@ -22,11 +28,11 @@
 <body>
   <main class="container-fluid">
     <header>
-      <h1 class="text-center">E2E Test Dapp</h1>
+      <h1 class="text-center">Auto-Rebalancer</h1>
     </header>
 
     <!-- Part 1 Setting up Basic Actions and Status-->
-    <section>
+    <!-- <section>
       <h3 class="card-title">Status</h3>
       <div class="row">
         <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12">
@@ -40,23 +46,26 @@
         </div>
 
       </div>
-    </section>
+    </section> -->
 
     <section>
       <div class="row d-flex justify-content-center">
         <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12">
           <div class="card">
-            <img class="card-img-top" src="https://metamask.github.io/metamask-docs/ethereum-metamask-chrome.png"
-              alt="Card image cap">
+            <!-- <img class="card-img-top" src="https://metamask.github.io/metamask-docs/ethereum-metamask-chrome.png"
+              alt="Card image cap"> -->
             <div class="card-body">
-              <h4 class="card-title">Basic Actions</h4>
+              <!-- <h4 class="card-title">Basic Actions</h4> -->
               <button class="btn btn-primary btn-lg btn-block mb-3" id="connectButton" disabled></button>
-              <button class="btn btn-primary btn-lg btn-block mb-3" id="getAccounts">eth_accounts</button>
-              <p class="info-text alert alert-secondary">eth_accounts result: <span id="getAccountsResult"></span></p>
-              <p class="info-text alert alert-secondary">MATIC_balance result: <span id="getBalanceResult"></span></p>
-              <p class="info-text alert alert-secondary">USDC_balance result: <span id="getUSDCResult"></span></p>
-              <p class="info-text alert alert-secondary">WBTC_balance result: <span id="getWBTCResult"></span></p>
-              <p class="info-text alert alert-secondary">WMATIC_balance result: <span id="getWMATICResult"></span></p>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="getAccounts">Display my address</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="getBalances">Display my coin balances</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="getUSDBalances">Display USD balances</button>
+              <p class="info-text alert alert-secondary">Your account no: <span id="getAccountsResult"></span></p>
+              <p class="info-text alert alert-secondary">Your WMATIC balance: <span id="getWMATICResult"></span> in USD: <span id="WMATICInUsd"></span></p>
+              <p class="info-text alert alert-secondary">Your USDC balance: <span id="getUSDCResult"></span></p>
+              <p class="info-text alert alert-secondary">Your WBTC balance: <span id="getWBTCResult"></span> in USD: <span id="WBTCInUsd"></span></p>
+              <p class="info-text alert alert-secondary">Your WETH balance: <span id="getWETHResult"></span> in USD: <span id="WETHInUsd"></span></p>
+              <p class="info-text alert alert-secondary">Your USD total: <span id="TOTALInUsd"></span> </p>
               <button class="btn btn-primary btn-lg btn-block mb-3" id="rebalance">Rebalance</button>
             </div>
           </div>
@@ -119,7 +128,7 @@
     </section>
   </main>
 
-  <script src="node_modules/@metamask/onboarding/dist/metamask-onboarding.bundle.js" defer></script>
+  <!-- <script src="../node_modules/@metamask/onboarding/dist/metamask-onboarding.bundle.js" defer></script> -->
 
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>

@@ -13,6 +13,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "lite-server": "^2.3.0"
+    "lite-server": "^2.6.1"
+  },
+  "dependencies": {
+    "@metamask/onboarding": "^1.0.1",
+    "coingecko-api": "^1.0.10",
+    "ethers": "^5.3.1"
   }
 }
