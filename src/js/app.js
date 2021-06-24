@@ -23,6 +23,8 @@ var total_in_usd;
 // const provider = await detectEthereumProvider();
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 const signer = provider.getSigner()
+const confirmSwapButton = document.getElementById('confirmSwap');
+const confirmApprovalButton = document.getElementById('confirmApprove')
 
 if (provider) {
   startApp(provider); // Initialize your app
@@ -51,14 +53,18 @@ function startApp(provider) {
   var wbtc_bal;
   var weth_bal;
   var wmatic_bal;
+  
   var _wmatic_in_usd;
   var _wbtc_in_usd;
   var _weth_in_usd;
+  
   var eth_usd_rate;
   var wbtc_usd_rate;
   var matic_usd_rate;
   var usdc_usd_rate = 1;
+  
   var array_coins;
+  var inputs;
 
 
   //Eth_Accounts-getAccountsButton
@@ -142,19 +148,52 @@ function startApp(provider) {
     array_coins.sort((a, b) => {
       return b.diff_from_average - a.diff_from_average;
     });
-    console.log(array_coins);
-    do {
-      var inputs = getSwapInputs(array_coins); //balances 1 coin to the portfolio dollar average, and returns the remaining coins as an array
-      var swap_result = await swap(inputs[0], inputs[1], inputs[2]);
-      if (swap_result) {
-        array_coins = updateArray(array_coins);
-      }
+
+    // get the inputs for the swaps, perform the swaps, update the array each time
+    // do {
+    inputs = getSwapInputs(array_coins); //balances 1 coin to the portfolio dollar average, and returns the remaining coins as an array
+    //check if router is approved to spend tokens
+    console.log(inputs);
+    var approvedAmount = await allowance(inputs[2][0], SUSHISWAP_ROUTER) //input token and router addresses
+    console.log(approvedAmount)
+    //if not, must approve it:
+    if (approvedAmount.lt(inputs[0])) { //less than
+      console.log('need to get approval');
+      window.alert("Time to get approval!");
+      //approve router to spend input tokens
+      document.getElementById('confirmApprove').disabled = false;
+      // and alert user to click the button, or make the button actually pop up!
+    } else {
+      //if approval already exists, go straight to the swap
+      window.alert("Time to do the swap!");
+      document.getElementById('confirmSwap').disabled = false;
     }
-    while (array_coins.length > 1) //we repeat the above until we're down to just one coin in the array
+    // } while (array_coins.length > 1) //we repeat the above until we're down to just one coin in the array
+  })
+
+  confirmApprovalButton.addEventListener('click', async () => {
+    document.getElementById('confirmApprove').disabled = true;
+    //ask for approval
+    var approved = await giveApproval(inputs[2][0], SUSHISWAP_ROUTER, inputs[0]); //token_address, router_address, amountIn
+    //create a listener for the approval confirmation
+    var tokenContract = new ethers.Contract(inputs[2][0], abi, signer);
+    var filter = tokenContract.filters.Approval(user, null);
+    tokenContract.once(filter, (owner, spender, value, event) => {
+      console.log('Tokens approved');
+      window.alert("Time to do the swap!");
+      document.getElementById('confirmSwap').disabled = false;
+    })
+  })
+
+  confirmSwapButton.addEventListener('click', async () => {
+    document.getElementById('confirmSwap').disabled = true;
+    //perform the swap
+    var swap_result = await swap(inputs[0], inputs[1], inputs[2], user, Date.now() + 1111111111111);
+    if (swap_result) { //I could modify this to listen for tx confirmation?
+      array_coins = updateArray(array_coins);
+    }
   })
 }
-
-
 
 /**********************************************************/
 /* Handle chain (network) and chainChanged (per EIP-1193) */
@@ -251,10 +290,10 @@ async function getBalance(token_address) {
     var decimals = await tokenContract.decimals();
     tokenBalance = tokenBalance / (10 ** decimals)
     return tokenBalance;
-    } catch (error) {
-      console.log(error)
-    }
+  } catch (error) {
+    console.log(error)
   }
+}
 
 async function getExchangeRate(oracle_address) {
   var oracle = new ethers.Contract(oracle_address, CHAINLINK_ORACLE_ABI, provider);
@@ -262,9 +301,9 @@ async function getExchangeRate(oracle_address) {
     var exchangeRate = await oracle.latestAnswer();
     exchangeRate = exchangeRate.div(10 ** 8);
     return exchangeRate;
-    } catch (error) {
-      console.log(error);
-    }   
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function getDecimals(token_address) {
@@ -278,50 +317,81 @@ async function getDecimals(token_address) {
   }
 }
 
-function getSwapInputs(array_coins) {
-  if (array_coins[0].diff_from_average > Math.abs(array_coins[array_coins.length - 1].diff_from_average)) { //check which coin is further from the dollar average
-    
-    var swap_path = [array_coins[0].address, array_coins[array_coins.length - 1].address] //swap from first array item to last
-    
-    var amountIn = Math.abs(array_coins[array_coins.length - 1].diff_from_average) * (1 / (array_coins[0].usd_exchange_rate)) //figure out how much to swap
-    var amountOutMin = amountIn * array_coins[0].usd_exchange_rate / array_coins[array_coins.length-1].usd_exchange_rate *0.97;
-
-    var amountIn_Wei = parseInt(amountIn * 10 ** array_coins[0].decimals).toString() //am I introducing potential rounding errors here? And should I check for NaN after?
-    var amountOutMin_Wei = parseInt(amountOutMin * 10 ** array_coins[array_coins.length-1].decimals).toString()
-
-    console.log(`Swapping ${amountIn.toFixed(8)} of ${array_coins[0].symbol} for ${array_coins[array_coins.length - 1].symbol}`);
-    return [swap_path, amountIn_Wei, amountOutMin_Wei];
-  }
-  else {
-    
-    var swap_path = [array_coins[0].address, array_coins[array_coins.length - 1].address]; // swap from last array item to first
-    
-    var amountIn = Math.abs(array_coins[0].diff_from_average) * (1 / (array_coins[0].usd_exchange_rate)); //figure out how much to swap
-    var amountOutMin = amountIn * array_coins[0].usd_exchange_rate / array_coins[array_coins.length-1].usd_exchange_rate *0.97;
-
-    var amountIn_Wei = parseInt(amountIn * 10 ** array_coins[0].decimals).toString() //am I introducing potential rounding errors here? And should I check for NaN after?
-    var amountOutMin_Wei = parseInt(amountOutMin * 10 ** array_coins[array_coins.length-1].decimals).toString()
-
-    console.log(`Swapping ${amountIn.toFixed(8)} of ${array_coins[0].symbol} for ${array_coins[array_coins.length - 1].symbol}`);
-    
-    return [swap_path, amountIn_Wei, amountOutMin_Wei];
+async function allowance(token_address, router_address) {
+  // create a new instance of a contract
+  var tokenContract = new ethers.Contract(token_address, abi, signer)
+  // check what amount of user's tokens the spender is approved to use
+  try {
+    var approvedAmount = await tokenContract.allowance(user, router_address); //allowance(owner_address, spender_address)
+    return approvedAmount;
+  } catch (error) {
+    console.log(error)
   }
 }
 
-async function swap(_path, _amountIn, amountOutMin) {
+async function giveApproval(token_address, router_address, amountIn) {
+  // create a new instance of a contract
+  var tokenContract = new ethers.Contract(token_address, abi, signer)
+  // give router_address approval to spend user's tokens
+  try {
+    var approved = await tokenContract.approve(router_address, amountIn); //approve(spender, amount)
+    return approved;
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+// async function approvalConfirmed() {
+//   var approvalconfirmed = await tokenContract.once("Approval", (owner, spender, value, event) => {
+//     console.log('Tokens approved');
+//   }
+
+function getSwapInputs(array_coins) {
+  if (array_coins[0].diff_from_average > Math.abs(array_coins[array_coins.length - 1].diff_from_average)) { //check which coin is further from the dollar average
+
+    var swap_path = [array_coins[0].address, array_coins[array_coins.length - 1].address] //swap from first array item to last
+
+    var amountIn = Math.abs(array_coins[array_coins.length - 1].diff_from_average) * (1 / (array_coins[0].usd_exchange_rate)) //figure out how much to swap
+    var amountOutMin = Math.abs(array_coins[array_coins.length - 1].diff_from_average) * (1 / (array_coins[array_coins.length - 1].usd_exchange_rate)) * 0.75;
+
+    var amountIn_Wei = parseInt(amountIn * 10 ** array_coins[0].decimals).toString() //am I introducing potential rounding errors here? And should I check for NaN after?
+    var amountOutMin_Wei = parseInt(amountOutMin * 10 ** array_coins[array_coins.length - 1].decimals).toString()
+
+    console.log(`Swapping ${amountIn.toFixed(8)} of ${array_coins[0].symbol} for ${array_coins[array_coins.length - 1].symbol}`);
+    $("#swapStarted").css("display", "block");
+    $("#swapStarted").text(`Swapping ${amountIn.toFixed(8)} of ${array_coins[0].symbol} for ${array_coins[array_coins.length - 1].symbol}`);
+
+    return [amountIn_Wei, amountOutMin_Wei, swap_path];
+  }
+  else {
+
+    var swap_path = [array_coins[0].address, array_coins[array_coins.length - 1].address]; // swap from last array item to first
+
+    var amountIn = Math.abs(array_coins[0].diff_from_average) * (1 / (array_coins[0].usd_exchange_rate)); //figure out how much to swap
+    var amountOutMin = Math.abs(array_coins[0].diff_from_average) * (1 / (array_coins[array_coins.length - 1].usd_exchange_rate)) * 0.75;
+
+    var amountIn_Wei = parseInt(amountIn * 10 ** array_coins[0].decimals).toString() //am I introducing potential rounding errors here? And should I check for NaN after?
+    var amountOutMin_Wei = parseInt(amountOutMin * 10 ** array_coins[array_coins.length - 1].decimals).toString()
+
+    console.log(`Swapping ${amountIn.toFixed(8)} of ${array_coins[0].symbol} for ${array_coins[array_coins.length - 1].symbol}`);
+    $("#swapStarted").css("display", "block");
+    $("#swapStarted").text(`Swapping ${amountIn.toFixed(8)} of ${array_coins[0].symbol} for ${array_coins[array_coins.length - 1].symbol}`);
+
+    return [amountIn_Wei, amountOutMin_Wei, swap_path];
+  }
+}
+
+async function swap(_amountIn, _amountOutMin, _path, _acct, _deadline) {
   //making a swap on QUICKSWAP - first create an instance of the Quickswap router
-  var router = new ethers.Contract(QUICKSWAP_ROUTER, ROUTER_ABI_QS, signer)
-  //then create an instance of the token contract
-  var acct = user
-  var deadline = Date.now() + 1111111111111
+  var router = new ethers.Contract(SUSHISWAP_ROUTER, ROUTER_ABI, signer)
   //perform the swap
-  var _amountOutMin = 0;
   try {
     var swap = await router.swapExactTokensForTokens(_amountIn,
       _amountOutMin,
       _path,
-      acct,
-      deadline)
+      _acct,
+      _deadline)
     return true;
   } catch (error) {
     console.log(error); //can I get it to try again here??
@@ -350,5 +420,5 @@ function updateArray(array_coins) {
       return b.diff_from_average - a.diff_from_average;
     })
     return array_coins;
-  } 
+  }
 }
