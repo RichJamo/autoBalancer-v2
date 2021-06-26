@@ -53,16 +53,16 @@ function startApp(provider) {
   var wbtc_bal;
   var weth_bal;
   var wmatic_bal;
-  
+
   var _wmatic_in_usd;
   var _wbtc_in_usd;
   var _weth_in_usd;
-  
+
   var eth_usd_rate;
   var wbtc_usd_rate;
   var matic_usd_rate;
   var usdc_usd_rate = 1;
-  
+
   var array_coins;
   var inputs;
 
@@ -150,49 +150,59 @@ function startApp(provider) {
     });
 
     // get the inputs for the swaps, perform the swaps, update the array each time
-    // do {
-    inputs = getSwapInputs(array_coins); //balances 1 coin to the portfolio dollar average, and returns the remaining coins as an array
-    //check if router is approved to spend tokens
-    console.log(inputs);
-    var approvedAmount = await allowance(inputs[2][0], SUSHISWAP_ROUTER) //input token and router addresses
-    console.log(approvedAmount)
-    //if not, must approve it:
-    if (approvedAmount.lt(inputs[0])) { //less than
-      console.log('need to get approval');
-      window.alert("Time to get approval!");
-      //approve router to spend input tokens
-      document.getElementById('confirmApprove').disabled = false;
-      // and alert user to click the button, or make the button actually pop up!
-    } else {
-      //if approval already exists, go straight to the swap
-      window.alert("Time to do the swap!");
-      document.getElementById('confirmSwap').disabled = false;
-    }
-    // } while (array_coins.length > 1) //we repeat the above until we're down to just one coin in the array
-  })
 
-  confirmApprovalButton.addEventListener('click', async () => {
-    document.getElementById('confirmApprove').disabled = true;
-    //ask for approval
-    var approved = await giveApproval(inputs[2][0], SUSHISWAP_ROUTER, inputs[0]); //token_address, router_address, amountIn
-    //create a listener for the approval confirmation
-    var tokenContract = new ethers.Contract(inputs[2][0], abi, signer);
-    var filter = tokenContract.filters.Approval(user, null);
-    tokenContract.once(filter, (owner, spender, value, event) => {
-      console.log('Tokens approved');
-      window.alert("Time to do the swap!");
-      document.getElementById('confirmSwap').disabled = false;
-    })
-  })
+    startSwap(array_coins);
 
-  confirmSwapButton.addEventListener('click', async () => {
-    document.getElementById('confirmSwap').disabled = true;
-    //perform the swap
-    var swap_result = await swap(inputs[0], inputs[1], inputs[2], user, Date.now() + 1111111111111);
-    if (swap_result) { //I could modify this to listen for tx confirmation?
-      array_coins = updateArray(array_coins);
-    }
+    // var tokenContract = new ethers.Contract(inputs[2][0], abi, signer);
+    // var filter = tokenContract.filters.Transfer(null, user);
+    // tokenContract.once(filter, async (owner, spender, value, event) => {
+    //   console.log('Swap 1 done');
+    //   startSwap(array_coins)
+    // })
+
   })
+}
+
+async function startSwap(array_coins) {
+  var inputs = getSwapInputs(array_coins); //balances 1 coin to the portfolio dollar average, and returns the remaining coins as an array
+  console.log(inputs);
+
+  //find out what router is approved to spend for this user (if anything)
+  var approvedAmount = await allowance(inputs[2][0], SUSHISWAP_ROUTER) //input token and router addresses
+  console.log(approvedAmount)
+
+  //if not, must approve it:
+  if (approvedAmount.lt(inputs[0])) { //less than
+    console.log('need to get approval');
+    //ask user to confirm asking for approval
+    if (window.confirm("Time to get approval!")) {
+      //ask for approval
+      var approved = await giveApproval(inputs[2][0], SUSHISWAP_ROUTER, inputs[0]); //token_address, router_address, amountIn
+      //create a listener for the approval confirmation
+      var tokenContract = new ethers.Contract(inputs[2][0], abi, signer);
+      var filter = tokenContract.filters.Approval(user, null);
+      tokenContract.once(filter, async (owner, spender, value, event) => {
+        console.log('Tokens approved');
+        if (window.confirm("Time to do the swap!")) {
+          //perform the swap
+          var swap_result = await swap(inputs[0], inputs[1], inputs[2], user, Date.now() + 1111111111111);
+          if (swap_result) { //I could modify this to listen for tx confirmation?
+            array_coins = updateArray(array_coins);
+          }
+        };
+      })
+    }
+  } else {
+    //if approval already exists, go straight to the swap
+    console.log('we got here!')
+    if (confirm("Time to do the swap!")) {
+      //perform the swap
+      var swap_result = await swap(inputs[0], inputs[1], inputs[2], user, Date.now() + 1111111111111);
+      if (swap_result) { //I could modify this to listen for tx confirmation?
+        array_coins = updateArray(array_coins);
+      }
+    }
+  }
 }
 
 /**********************************************************/
