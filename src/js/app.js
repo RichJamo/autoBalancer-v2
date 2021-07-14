@@ -77,9 +77,6 @@ function startApp(provider) {
   });
 
   getBalancesButton.addEventListener('click', async () => {
-    // balance = await provider.getBalance(user); //returns a BigNumber
-    // console.log(balance.toString());
-
     wmatic_bal = await getBalance(WMATIC_ADDRESS);
     getWMATICResult.innerHTML = wmatic_bal.toFixed(5) || 'Not able to get accounts'; //what if wmatic_bal undefined?
 
