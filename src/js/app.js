@@ -10,7 +10,6 @@ const MATIC_USD_ORACLE = "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0"
 const BTC_USD_ORACLE = "0xc907E116054Ad103354f2D350FD2514433D57F6f"
 const ETH_USD_ORACLE = "0xF9680D99D6C9589e2a93a78A04A279e509205945"
 
-var contract;
 var user;
 var total_in_usd;
 /*****************************************/
@@ -46,9 +45,7 @@ function startApp(provider) {
   const rebalanceButton = document.getElementById('rebalance');
 
   const getAccountsResult = document.getElementById('getAccountsResult');
-  // const getBalanceResult = document.getElementById('getBalanceResult');
 
-  // var balance;
   var usdc_bal;
   var wbtc_bal;
   var weth_bal;
@@ -165,7 +162,7 @@ async function balanceAndRemoveOneCoin(array_coins) {
     console.log("token already approved");
     confirmAndExecuteSwapAndUpdateArrayAndDoNextSwap(amount_to_be_swapped, swapInputs, array_coins, tokenToBeSwappedContract)
   }
-  
+
   else {
     console.log("token not already approved");
 

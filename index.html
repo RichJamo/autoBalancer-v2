@@ -34,8 +34,8 @@
     </header>
 
     <section>
-      <div class="row d-flex justify-content-center">
-        <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12">
+      <!-- <div class="row d-flex justify-content-center">
+        <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12"> -->
           <div class="card">
             <div class="card-body">
               <button class="btn btn-primary btn-lg btn-block mb-3" id="connectButton" disabled></button>
@@ -43,26 +43,31 @@
               <button class="btn btn-primary btn-lg btn-block mb-3" id="getBalances">Display my coin balances</button>
               <button class="btn btn-primary btn-lg btn-block mb-3" id="getUSDBalances">Display USD balances</button>
               
-              <p class="info-text alert alert-secondary">Your account no: <span id="getAccountsResult"></span></p>
-              <p class="info-text alert alert-secondary">Your WMATIC balance: <span id="getWMATICResult"></span> in USD:
-                <span id="WMATICInUsd"></span></p>
-              <p class="info-text alert alert-secondary">Your USDC balance: <span id="getUSDCResult"></span></p>
-              <p class="info-text alert alert-secondary">Your WBTC balance: <span id="getWBTCResult"></span> in USD:
-                <span id="WBTCInUsd"></span></p>
-              <p class="info-text alert alert-secondary">Your WETH balance: <span id="getWETHResult"></span> in USD:
-                <span id="WETHInUsd"></span></p>
-              <p class="info-text alert alert-secondary">Your USD total: <span id="TOTALInUsd"></span> </p>
+              <p>Your account no: <span id="getAccountsResult"></span></p>
+
+              <p>Your WMATIC balance: <span id="getWMATICResult"></span> </p>
+              <p> in USD: <span id="WMATICInUsd"></span> </p>
+
+              <p>Your USDC balance: <span id="getUSDCResult"></span></p>
+
+              <p>Your WBTC balance: <span id="getWBTCResult"></span> </p>
+              <p> in USD: <span id="WBTCInUsd"></span> </p>
+
+              <p>Your WETH balance: <span id="getWETHResult"></span> </p> 
+              <p> in USD: <span id="WETHInUsd"></span> </p>
+
+              <p>Your USD total: <span id="TOTALInUsd"></span> </p>
               
               <button class="btn btn-primary btn-lg btn-block mb-3" id="rebalance">Rebalance</button>
             </div>
           </div>
-        </div>
-      </div>
+        <!-- </div>
+      </div> -->
     </section>
 
     <section>
-      <button class="btn btn-primary btn-lg btn-block mb-3" id="confirmApprove" disabled="true">Approve?</button>
-      <button class="btn btn-primary btn-lg btn-block mb-3" id="confirmSwap" disabled="true">Confirm Swap?</button>
+      <!-- <button class="btn btn-primary btn-lg btn-block mb-3" id="confirmApprove" disabled="true">Approve?</button>
+      <button class="btn btn-primary btn-lg btn-block mb-3" id="confirmSwap" disabled="true">Confirm Swap?</button> -->
 
       <div class="alert alert-success" role="alert" id="swapStarted" style="display:none"> </div>
     </section>
