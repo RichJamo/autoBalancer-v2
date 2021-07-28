@@ -148,65 +148,35 @@ function startApp(provider) {
 
     sortCoinsDescendingByDiffFromAvg(array_coins);
 
-    await startSwap(array_coins);
+    await balanceAndRemoveOneCoin(array_coins);
   })
 }
 
-async function startSwap(array_coins) {
+async function balanceAndRemoveOneCoin(array_coins) {
 
-  var swapInputs = getSwapInputs(array_coins); //balances 1 coin to the portfolio dollar average, and returns the remaining coins as an array
+  var swapInputs = getSwapInputs(array_coins);
   var token_to_be_swapped_address = swapInputs[2][0];
   var amount_to_be_swapped = swapInputs[0];
 
   var isApprovedForAmount = await checkIfApprovedForAmount(token_to_be_swapped_address, amount_to_be_swapped);
+  var tokenToBeSwappedContract = new ethers.Contract(token_to_be_swapped_address, abi, signer);
 
   if (isApprovedForAmount) {
     console.log("token already approved");
-
-    if (window.confirm("Confirm Swap")) {
-      await executeSwap(amount_to_be_swapped, swapInputs[1], swapInputs[2], user, Date.now() + 1111111111111);
-      updateArray(array_coins); //do I need to get a swap confirmation before doing this?
-      if (array_coins.length > 1) {
-        var tokenContract = new ethers.Contract(token_to_be_swapped_address, abi, signer);
-        var tokenTransferredFilter = tokenContract.filters.Transfer(user, null);
-        console.log("in the if loop")
-        tokenContract.once(tokenTransferredFilter , async (from, to, amount, event) => {
-          console.log(`${ from } sent ${amount} to ${ to}`);
-          await startSwap(array_coins);
-        });
-      }
-    }
-
+    confirmAndExecuteSwapAndUpdateArrayAndDoNextSwap(amount_to_be_swapped, swapInputs, array_coins, tokenToBeSwappedContract)
   }
+  
   else {
     console.log("token not already approved");
 
     askUserForApproval(token_to_be_swapped_address, amount_to_be_swapped);
-
     //create a listener for the approval confirmation
-    var tokenToBeSwappedContract = new ethers.Contract(token_to_be_swapped_address, abi, signer);
-    
     var filterForApprovalEvent = tokenToBeSwappedContract.filters.Approval(user, null);
-
     tokenToBeSwappedContract.once(filterForApprovalEvent, async (owner, spender, value, event) => {
       console.log('Tokens approved');
-      if (window.confirm("Confirm Swap")) {
-        await executeSwap(amount_to_be_swapped, swapInputs[1], swapInputs[2], user, Date.now() + 1111111111111);
-        updateArray(array_coins); //do I need to get a swap confirmation before doing this?
-        if (array_coins.length > 1) {
-          var tokenTransferredFilter = tokenToBeSwappedContract.filters.Transfer(user, null);
-          console.log("in the if loop")
-          tokenToBeSwappedContract.once(tokenTransferredFilter , async (from, to, amount, event) => {
-            console.log(`${ from } sent ${amount} to ${ to}`);
-            await startSwap(array_coins);
-          })
-        }
-      }
+      confirmAndExecuteSwapAndUpdateArrayAndDoNextSwap(amount_to_be_swapped, swapInputs, array_coins, tokenToBeSwappedContract)
     })
-    // I think there's a possibility here that if the last coin to be swapped needs to be approved, then it will do an extra swap
   }
-  console.log(array_coins.length);
-
 }
 
 /**********************************************************/
@@ -419,6 +389,18 @@ async function askUserForApproval(_token_address, _amount) {
   }
 }
 
+async function confirmAndExecuteSwapAndUpdateArrayAndDoNextSwap(_amount_to_be_swapped, _swapInputs, _array_coins, _tokenToBeSwappedContract) {
+
+  if (window.confirm("Confirm Swap")) {
+    await executeSwap(_amount_to_be_swapped, _swapInputs[1], _swapInputs[2], user, Date.now() + 1111111111111);
+
+    updateArray(_array_coins);
+    if (_array_coins.length > 1) {
+      executeNextSwapOnceLastOneConfirms(_tokenToBeSwappedContract, _array_coins);
+    }
+  }
+}
+
 async function executeSwap(_amountIn, _amountOutMin, _path, _acct, _deadline) {
   var router = new ethers.Contract(SUSHISWAP_ROUTER, ROUTER_ABI, signer)
   try {
@@ -431,6 +413,14 @@ async function executeSwap(_amountIn, _amountOutMin, _path, _acct, _deadline) {
   catch (error) {
     console.log(error); //can I get it to try again here??
   }
+}
+
+async function executeNextSwapOnceLastOneConfirms(_tokenToBeSwappedContract, _array_coins) {
+  var tokenTransferredFilter = _tokenToBeSwappedContract.filters.Transfer(user, null);
+  _tokenToBeSwappedContract.once(tokenTransferredFilter, async (from, to, amount, event) => {
+    console.log(`${from} sent ${amount} to ${to}`);
+    await balanceAndRemoveOneCoin(_array_coins);
+  })
 }
 
 function updateArray(array_coins) {
