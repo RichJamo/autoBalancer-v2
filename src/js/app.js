@@ -64,7 +64,7 @@ function startApp(provider) {
   var usdc_usd_rate = 1;
 
   var array_coins;
-  var inputs;
+  var swapInputs;
 
 
   //Eth_Accounts-getAccountsButton
@@ -75,6 +75,12 @@ function startApp(provider) {
     //We take the first address in the array of addresses and display it
     getAccountsResult.innerHTML = user || 'Not able to get accounts';
   });
+
+  // var tokenlist = (wmatic, usdc, wbtc, weth);
+  // for (token in tokenlist) {
+  //   getBalance(token)
+  //   displayResult(token)
+  // };
 
   getBalancesButton.addEventListener('click', async () => {
     wmatic_bal = await getBalance(WMATIC_ADDRESS);
@@ -138,68 +144,69 @@ function startApp(provider) {
     var WBTC = new Coin("WBTC", WBTC_ADDRESS, wbtc_decimals, wbtc_bal, _wbtc_in_usd, diff_wbtc, wbtc_usd_rate);
     var WETH = new Coin("WETH", WETH_ADDRESS, weth_decimals, weth_bal, _weth_in_usd, diff_weth, eth_usd_rate);
 
-    //put our 4 coin objects into an array
     array_coins = [USDC, WMATIC, WBTC, WETH];
 
-    //sort the coins by how far they are from the average
-    array_coins.sort((a, b) => {
-      return b.diff_from_average - a.diff_from_average;
-    });
+    sortCoinsDescendingByDiffFromAvg(array_coins);
 
-    // get the inputs for the swaps, perform the swaps, update the array each time
-
-    startSwap(array_coins);
-
-    // var tokenContract = new ethers.Contract(inputs[2][0], abi, signer);
-    // var filter = tokenContract.filters.Transfer(null, user);
-    // tokenContract.once(filter, async (owner, spender, value, event) => {
-    //   console.log('Swap 1 done');
-    //   startSwap(array_coins)
-    // })
-
+    await startSwap(array_coins);
   })
 }
 
 async function startSwap(array_coins) {
-  var inputs = getSwapInputs(array_coins); //balances 1 coin to the portfolio dollar average, and returns the remaining coins as an array
-  console.log(inputs);
 
-  //find out what router is approved to spend for this user (if anything)
-  var approvedAmount = await allowance(inputs[2][0], SUSHISWAP_ROUTER) //input token and router addresses
-  console.log(approvedAmount)
+  var swapInputs = getSwapInputs(array_coins); //balances 1 coin to the portfolio dollar average, and returns the remaining coins as an array
+  var token_to_be_swapped_address = swapInputs[2][0];
+  var amount_to_be_swapped = swapInputs[0];
 
-  //if not, must approve it:
-  if (approvedAmount.lt(inputs[0])) { //less than
-    console.log('need to get approval');
-    //ask user to confirm asking for approval
-    if (window.confirm("Time to get approval!")) {
-      //ask for approval
-      var approved = await giveApproval(inputs[2][0], SUSHISWAP_ROUTER, inputs[0]); //token_address, router_address, amountIn
-      //create a listener for the approval confirmation
-      var tokenContract = new ethers.Contract(inputs[2][0], abi, signer);
-      var filter = tokenContract.filters.Approval(user, null);
-      tokenContract.once(filter, async (owner, spender, value, event) => {
-        console.log('Tokens approved');
-        if (window.confirm("Time to do the swap!")) {
-          //perform the swap
-          var swap_result = await swap(inputs[0], inputs[1], inputs[2], user, Date.now() + 1111111111111);
-          if (swap_result) { //I could modify this to listen for tx confirmation?
-            array_coins = updateArray(array_coins);
-          }
-        };
-      })
-    }
-  } else {
-    //if approval already exists, go straight to the swap
-    console.log('we got here!')
-    if (confirm("Time to do the swap!")) {
-      //perform the swap
-      var swap_result = await swap(inputs[0], inputs[1], inputs[2], user, Date.now() + 1111111111111);
-      if (swap_result) { //I could modify this to listen for tx confirmation?
-        array_coins = updateArray(array_coins);
+  var isApprovedForAmount = await checkIfApprovedForAmount(token_to_be_swapped_address, amount_to_be_swapped);
+
+  if (isApprovedForAmount) {
+    console.log("token already approved");
+
+    if (window.confirm("Confirm Swap")) {
+      await executeSwap(amount_to_be_swapped, swapInputs[1], swapInputs[2], user, Date.now() + 1111111111111);
+      updateArray(array_coins); //do I need to get a swap confirmation before doing this?
+      if (array_coins.length > 1) {
+        var tokenContract = new ethers.Contract(token_to_be_swapped_address, abi, signer);
+        var tokenTransferredFilter = tokenContract.filters.Transfer(user, null);
+        console.log("in the if loop")
+        tokenContract.once(tokenTransferredFilter , async (from, to, amount, event) => {
+          console.log(`${ from } sent ${amount} to ${ to}`);
+          await startSwap(array_coins);
+        });
       }
     }
+
   }
+  else {
+    console.log("token not already approved");
+
+    askUserForApproval(token_to_be_swapped_address, amount_to_be_swapped);
+
+    //create a listener for the approval confirmation
+    var tokenToBeSwappedContract = new ethers.Contract(token_to_be_swapped_address, abi, signer);
+    
+    var filterForApprovalEvent = tokenToBeSwappedContract.filters.Approval(user, null);
+
+    tokenToBeSwappedContract.once(filterForApprovalEvent, async (owner, spender, value, event) => {
+      console.log('Tokens approved');
+      if (window.confirm("Confirm Swap")) {
+        await executeSwap(amount_to_be_swapped, swapInputs[1], swapInputs[2], user, Date.now() + 1111111111111);
+        updateArray(array_coins); //do I need to get a swap confirmation before doing this?
+        if (array_coins.length > 1) {
+          var tokenTransferredFilter = tokenToBeSwappedContract.filters.Transfer(user, null);
+          console.log("in the if loop")
+          tokenToBeSwappedContract.once(tokenTransferredFilter , async (from, to, amount, event) => {
+            console.log(`${ from } sent ${amount} to ${ to}`);
+            await startSwap(array_coins);
+          })
+        }
+      }
+    })
+    // I think there's a possibility here that if the last coin to be swapped needs to be approved, then it will do an extra swap
+  }
+  console.log(array_coins.length);
+
 }
 
 /**********************************************************/
@@ -306,7 +313,8 @@ async function getExchangeRate(oracle_address) {
   var oracle = new ethers.Contract(oracle_address, CHAINLINK_ORACLE_ABI, provider);
   try {
     var exchangeRate = await oracle.latestAnswer();
-    exchangeRate = exchangeRate.div(10 ** 8);
+    exchangeRate = exchangeRate.toNumber() //converts from BigNumber
+    exchangeRate = exchangeRate / (10 ** 8);
     return exchangeRate;
   } catch (error) {
     console.log(error);
@@ -324,7 +332,21 @@ async function getDecimals(token_address) {
   }
 }
 
-async function allowance(token_address, router_address) {
+function sortCoinsDescendingByDiffFromAvg(_array_coins) {
+  _array_coins.sort((a, b) => {
+    return b.diff_from_average - a.diff_from_average;
+  });
+}
+
+async function checkIfApprovedForAmount(_token_address, _amount) {
+  var approvedAmount = await getAllowance(_token_address, SUSHISWAP_ROUTER) //input token and router addresses
+  console.log(approvedAmount); //293
+  console.log(_amount); //9907
+  if (approvedAmount.lt(_amount)) return false;
+  else return true;
+}
+
+async function getAllowance(token_address, router_address) {
   // create a new instance of a contract
   var tokenContract = new ethers.Contract(token_address, abi, signer)
   // check what amount of user's tokens the spender is approved to use
@@ -377,9 +399,10 @@ function getSwapInputs(array_coins) {
 
     var amountIn = Math.abs(array_coins[0].diff_from_average) * (1 / (array_coins[0].usd_exchange_rate)); //figure out how much to swap
     var amountOutMin = Math.abs(array_coins[0].diff_from_average) * (1 / (array_coins[array_coins.length - 1].usd_exchange_rate)) * 0.75;
-
+    console.log(array_coins[array_coins.length - 1].usd_exchange_rate);
     var amountIn_Wei = parseInt(amountIn * 10 ** array_coins[0].decimals).toString() //am I introducing potential rounding errors here? And should I check for NaN after?
     var amountOutMin_Wei = parseInt(amountOutMin * 10 ** array_coins[array_coins.length - 1].decimals).toString()
+    console.log(amountOutMin_Wei);
 
     console.log(`Swapping ${amountIn.toFixed(8)} of ${array_coins[0].symbol} for ${array_coins[array_coins.length - 1].symbol}`);
     $("#swapStarted").css("display", "block");
@@ -389,43 +412,54 @@ function getSwapInputs(array_coins) {
   }
 }
 
-async function swap(_amountIn, _amountOutMin, _path, _acct, _deadline) {
-  //making a swap on QUICKSWAP - first create an instance of the Quickswap router
+async function askUserForApproval(_token_address, _amount) {
+  if (window.confirm("Time to get approval!")) {
+    //ask for approval
+    await giveApproval(_token_address, SUSHISWAP_ROUTER, _amount); //token_address, router_address, amountIn
+  }
+}
+
+async function executeSwap(_amountIn, _amountOutMin, _path, _acct, _deadline) {
   var router = new ethers.Contract(SUSHISWAP_ROUTER, ROUTER_ABI, signer)
-  //perform the swap
   try {
     var swap = await router.swapExactTokensForTokens(_amountIn,
       _amountOutMin,
       _path,
       _acct,
       _deadline)
-    return true;
-  } catch (error) {
+  }
+  catch (error) {
     console.log(error); //can I get it to try again here??
-    return false;
   }
 }
 
 function updateArray(array_coins) {
   if (array_coins[0].diff_from_average > Math.abs(array_coins[array_coins.length - 1].diff_from_average)) { //check which coin is further from the dollar average
-    array_coins[0].diff_from_average -= Math.abs(array_coins[array_coins.length - 1].diff_from_average);
-    //remove the coin that's now balanced
-    array_coins.pop() //remove the last element from the array
-    //re-sort the array
-    array_coins.sort((a, b) => {
-      return b.diff_from_average - a.diff_from_average;
-    })
-    return array_coins;
+    decreaseFirstCoinDiffFromAverage(array_coins);
+    removeFirstCoinAndReSort(array_coins);
   }
   else {
-    //decrease the diff_from_average of the coin we've just moved money out of
-    array_coins[array_coins.length - 1].diff_from_average += Math.abs(array_coins[0].diff_from_average);
-    //remove the coin that's now balanced
-    array_coins.shift(); //remove the last element from the array
-    //re-sort the array
-    array_coins.sort((a, b) => {
-      return b.diff_from_average - a.diff_from_average;
-    })
-    return array_coins;
+    decreaseLastCoinDiffFromAverage(array_coins)
+    removeLastCoinAndReSort(array_coins);
   }
+}
+
+function decreaseFirstCoinDiffFromAverage(_array_coins) {
+  _array_coins[0].diff_from_average -= Math.abs(_array_coins[_array_coins.length - 1].diff_from_average);
+}
+
+function decreaseLastCoinDiffFromAverage(_array_coins) {
+  _array_coins[_array_coins.length - 1].diff_from_average += Math.abs(_array_coins[0].diff_from_average);
+}
+
+function removeFirstCoinAndReSort(_array_coins) {
+  _array_coins.pop() //removes the last element from the array
+
+  sortCoinsDescendingByDiffFromAvg(_array_coins);
+}
+
+function removeLastCoinAndReSort(_array_coins) {
+  _array_coins.shift(); //remove the first element from the array
+
+  sortCoinsDescendingByDiffFromAvg(_array_coins);
 }
