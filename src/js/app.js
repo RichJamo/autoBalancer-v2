@@ -15,13 +15,35 @@ var total_in_usd;
 /*****************************************/
 /* Detect the MetaMask Ethereum provider */
 /*****************************************/
-
-// import detectEthereumProvider from '@metamask/detect-provider';
-
-// this returns the provider, or null if it wasn't detected
-// const provider = await detectEthereumProvider();
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 const signer = provider.getSigner()
+
+//check that we are connected to Polygon/Matic network
+var chainId = await checkNetworkId(provider)
+if (chainId !== 137) {
+  console.log("Please change to Matic network") //TODO make this an alert to the user...
+  try {
+    await ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: '0x89' }], //137 in 0x padded hexadecimal form is 0x89
+    });
+    window.location.reload();
+  } catch (switchError) {
+    // This error code indicates that the chain has not been added to MetaMask.
+    if (error.code === 4902) {
+      try {
+        await ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{ chainId: '0x89', rpcUrl: 'https://rpc-mainnet.maticvigil.com/' /* ... */ }],
+        });
+      } catch (addError) {
+        // handle "add" error
+      }
+    }
+    // handle other "switch" errors
+  }
+}
+
 const confirmSwapButton = document.getElementById('confirmSwap');
 const confirmApprovalButton = document.getElementById('confirmApprove')
 
@@ -31,20 +53,20 @@ if (provider) {
   console.log('Please install MetaMask!');
 }
 
-function startApp(provider) {
-  // If the provider returned by detectEthereumProvider is not the same as
-  // window.ethereum, something is overwriting it, perhaps another wallet.
-  if (provider !== window.ethereum) {
-    console.error('Do you have multiple wallets installed?');
+async function checkNetworkId(_provider) {
+  try {
+    var network = await provider.getNetwork();
+    return network["chainId"];
   }
+  catch (error) {
+    console.log(error);
+  }
+}
+
+async function startApp(provider) {
   //Basic Actions Section
   // const onboardButton = document.getElementById('connectButton'); - come back to this later - for checking if metamask installed
-  const getAccountsButton = document.getElementById('getAccounts');
-  const getBalancesButton = document.getElementById('getBalances');
-  const getUSDBalancesButton = document.getElementById('getUSDBalances');
   const rebalanceButton = document.getElementById('rebalance');
-
-  const getAccountsResult = document.getElementById('getAccountsResult');
 
   var usdc_bal;
   var wbtc_bal;
@@ -63,52 +85,37 @@ function startApp(provider) {
   var array_coins;
   var swapInputs;
 
+  const accounts = await ethereum.request({ method: 'eth_accounts' });
+  user = accounts[0];
+  getAccountsResult.innerHTML = user || 'Not able to get accounts';
 
-  //Eth_Accounts-getAccountsButton
-  getAccountsButton.addEventListener('click', async () => {
-    //we use eth_accounts because it returns a list of addresses owned by us.
-    const accounts = await ethereum.request({ method: 'eth_accounts' });
-    user = accounts[0]; //should I declare this here or lower down as current account?
-    //We take the first address in the array of addresses and display it
-    getAccountsResult.innerHTML = user || 'Not able to get accounts';
-  });
+  wmatic_bal = await getBalance(WMATIC_ADDRESS);
+  getWMATICResult.innerHTML = wmatic_bal.toFixed(5) || 'Not able to get accounts'; //what if wmatic_bal undefined?
 
-  // var tokenlist = (wmatic, usdc, wbtc, weth);
-  // for (token in tokenlist) {
-  //   getBalance(token)
-  //   displayResult(token)
-  // };
+  usdc_bal = await getBalance(USDC_ADDRESS);
+  getUSDCResult.innerHTML = usdc_bal.toFixed(5) || 'Not able to get accounts';
 
-  getBalancesButton.addEventListener('click', async () => {
-    wmatic_bal = await getBalance(WMATIC_ADDRESS);
-    getWMATICResult.innerHTML = wmatic_bal.toFixed(5) || 'Not able to get accounts'; //what if wmatic_bal undefined?
+  wbtc_bal = await getBalance(WBTC_ADDRESS);
+  getWBTCResult.innerHTML = wbtc_bal.toFixed(5) || 'Not able to get accounts';
 
-    usdc_bal = await getBalance(USDC_ADDRESS);
-    getUSDCResult.innerHTML = usdc_bal.toFixed(5) || 'Not able to get accounts';
+  weth_bal = await getBalance(WETH_ADDRESS);
+  getWETHResult.innerHTML = weth_bal.toFixed(5) || 'Not able to get accounts';
 
-    wbtc_bal = await getBalance(WBTC_ADDRESS);
-    getWBTCResult.innerHTML = wbtc_bal.toFixed(5) || 'Not able to get accounts';
+  matic_usd_rate = await getExchangeRate(MATIC_USD_ORACLE) //assume for now matic = wmatic 1:1
+  _wmatic_in_usd = wmatic_bal * matic_usd_rate
+  WMATICInUsd.innerHTML = _wmatic_in_usd.toFixed(2) || 'Not able to get accounts';
 
-    weth_bal = await getBalance(WETH_ADDRESS);
-    getWETHResult.innerHTML = weth_bal.toFixed(5) || 'Not able to get accounts';
-  });
+  wbtc_usd_rate = await getExchangeRate(BTC_USD_ORACLE)
+  _wbtc_in_usd = wbtc_bal * wbtc_usd_rate
+  WBTCInUsd.innerHTML = _wbtc_in_usd.toFixed(2) || 'Not able to get accounts'
 
-  getUSDBalancesButton.addEventListener('click', async () => {
-    matic_usd_rate = await getExchangeRate(MATIC_USD_ORACLE) //assume for now matic = wmatic 1:1
-    _wmatic_in_usd = wmatic_bal * matic_usd_rate
-    WMATICInUsd.innerHTML = _wmatic_in_usd.toFixed(2) || 'Not able to get accounts';
+  eth_usd_rate = await getExchangeRate(ETH_USD_ORACLE)
+  _weth_in_usd = weth_bal * eth_usd_rate
+  WETHInUsd.innerHTML = _weth_in_usd.toFixed(2) || 'Not able to get accounts'
 
-    wbtc_usd_rate = await getExchangeRate(BTC_USD_ORACLE)
-    _wbtc_in_usd = wbtc_bal * wbtc_usd_rate
-    WBTCInUsd.innerHTML = _wbtc_in_usd.toFixed(2) || 'Not able to get accounts'
+  total_in_usd = _wmatic_in_usd + _wbtc_in_usd + _weth_in_usd + usdc_bal
+  TOTALInUsd.innerHTML = total_in_usd.toFixed(2) || 'Not able to get accounts'
 
-    eth_usd_rate = await getExchangeRate(ETH_USD_ORACLE)
-    _weth_in_usd = weth_bal * eth_usd_rate
-    WETHInUsd.innerHTML = _weth_in_usd.toFixed(2) || 'Not able to get accounts'
-
-    total_in_usd = _wmatic_in_usd + _wbtc_in_usd + _weth_in_usd + usdc_bal
-    TOTALInUsd.innerHTML = total_in_usd.toFixed(2) || 'Not able to get accounts'
-  })
 
   rebalanceButton.addEventListener('click', async () => {
     var no_of_assets = 4;
@@ -149,45 +156,28 @@ function startApp(provider) {
   })
 }
 
-async function balanceAndRemoveOneCoin(array_coins) {
-
-  var swapInputs = getSwapInputs(array_coins);
-  var token_to_be_swapped_address = swapInputs[2][0];
-  var amount_to_be_swapped = swapInputs[0];
-
-  var isApprovedForAmount = await checkIfApprovedForAmount(token_to_be_swapped_address, amount_to_be_swapped);
-  var tokenToBeSwappedContract = new ethers.Contract(token_to_be_swapped_address, abi, signer);
-
-  if (isApprovedForAmount) {
-    console.log("token already approved");
-    confirmAndExecuteSwapAndUpdateArrayAndDoNextSwap(amount_to_be_swapped, swapInputs, array_coins, tokenToBeSwappedContract)
-  }
-
-  else {
-    console.log("token not already approved");
-
-    askUserForApproval(token_to_be_swapped_address, amount_to_be_swapped);
-    //create a listener for the approval confirmation
-    var filterForApprovalEvent = tokenToBeSwappedContract.filters.Approval(user, null);
-    tokenToBeSwappedContract.once(filterForApprovalEvent, async (owner, spender, value, event) => {
-      console.log('Tokens approved');
-      confirmAndExecuteSwapAndUpdateArrayAndDoNextSwap(amount_to_be_swapped, swapInputs, array_coins, tokenToBeSwappedContract)
-    })
-  }
-}
-
 /**********************************************************/
 /* Handle chain (network) and chainChanged (per EIP-1193) */
 /**********************************************************/
 
-// const chainId = await ethereum.request({ method: 'eth_chainId' });
-// handleChainChanged(chainId);
+provider.on("network", (newNetwork, oldNetwork) => {
+  // When a Provider makes its initial connection, it emits a "network"
+  // event with a null oldNetwork along with the newNetwork. So, if the
+  // oldNetwork exists, it represents a changing network
+  if (oldNetwork) {
+      window.location.reload();
+  }
+});
 
-// ethereum.on('chainChanged', handleChainChanged);
+// const chainId = await ethereum.request({ method: 'eth_chainId' });
+// // handleChainChanged(chainId);
+
+// ethereum.on('chainChanged', handleChainChanged(chainId));
 
 // function handleChainChanged(_chainId) {
 //   // We recommend reloading the page, unless you must do otherwise
-//   window.location.reload();
+//   console.log("Chain has changed");
+//   // window.location.reload();
 // }
 
 /***********************************************************/
@@ -250,17 +240,37 @@ function connect() {
       }
     });
 }
-$(document).ready(function () { //when the document loads
-  window.ethereum.enable().then(function (accounts) { //this should cause a metamask popup
-    // instance = new web3.eth.Contract(abi, contractAddress, {from: accounts[0]}); //creates an instance of the smart contract we want to interact with
-    // user = accounts[0];
-    // var accounts = web3.eth.getAccounts(); //this gets a list of the accounts in the Metamask wallet
-    // console.log(accounts)
-    // web3.eth.getBalance(user).then(console.log); //Get the balance of an address at a given block
-    // console.log(instance);
+$(document).ready(function () {
+  console.log("any code here will implement first...")
 
-  }) //call metamask enable function
 })
+
+async function balanceAndRemoveOneCoin(array_coins) {
+
+  var swapInputs = getSwapInputs(array_coins);
+  var token_to_be_swapped_address = swapInputs[2][0];
+  var amount_to_be_swapped = swapInputs[0];
+
+  var isApprovedForAmount = await checkIfApprovedForAmount(token_to_be_swapped_address, amount_to_be_swapped);
+  var tokenToBeSwappedContract = new ethers.Contract(token_to_be_swapped_address, abi, signer);
+
+  if (isApprovedForAmount) {
+    console.log("token already approved");
+    confirmAndExecuteSwapAndUpdateArrayAndDoNextSwap(amount_to_be_swapped, swapInputs, array_coins, tokenToBeSwappedContract)
+  }
+
+  else {
+    console.log("token not already approved");
+
+    askUserForApproval(token_to_be_swapped_address, amount_to_be_swapped);
+    //create a listener for the approval confirmation
+    var filterForApprovalEvent = tokenToBeSwappedContract.filters.Approval(user, null);
+    tokenToBeSwappedContract.once(filterForApprovalEvent, async (owner, spender, value, event) => {
+      console.log('Tokens approved');
+      confirmAndExecuteSwapAndUpdateArrayAndDoNextSwap(amount_to_be_swapped, swapInputs, array_coins, tokenToBeSwappedContract)
+    })
+  }
+}
 
 async function getBalance(token_address) {
   // create a new instance of a contract - in web3.js >1.0.0, will have to use "new web3.eth.Contract" (uppercase C)
