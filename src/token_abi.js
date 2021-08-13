@@ -1,4 +1,4 @@
-var abi = [
+var token_abi = [
     {
         "constant": true,
         "inputs": [],

@@ -14,21 +14,27 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.14.1/css/mdb.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./src/css/metamask.css" type="text/css">
   
-  <script src="./src/abi.js"></script>
+  <script src="./src/token_abi.js"></script>
   <script src="./src/chainlink_abi.js"></script>
   <script src="./src/router_abi.js"></script>
   <script src="./src/router_abi_QS.js"></script>
   <script src="./src/js/ethers.umd.min.js" type="application/javascript"></script>
+  <script src="./src/bento_abi.js"></script>
+  <script src="./src/bento_dapp_abi.js"></script>
+
 </head>
 
 <body>
   <main class="container-fluid">
     <header>
-      <h1 class="text-center">Auto-Rebalancer</h1>
-      <p class="text-center">You can (1) check your current address, (2) check your balances in four specific tokens
-        (also in USD), and (3) rebalance across those four tokens. </p>
-      <p class="text-center">For best results, ensure you have metamask installed and that you are using the Polygon
-        Mainnet</p>
+      <h1 class="text-center">The BEMS Index</h1>
+      <p class="text-center">BTC, ETH, MATIC and SUSHI in an equally weighted, monthly rebalanced index.</p>
+      <p class="text-center">Deposit USDC to participate in the index. Withdraw anytime, also in USDC. Fee of 0.3% on deposit (TBC).</p>
+      <p class="text-center">Index is fully-backed by the four crypto assets (wrapped versions of BTC, ETH and MATIC).</p>
+      <p class="text-center">Assets remain on BentoBox and can earn additional yield by doing so.</p>
+
+      <p class="text-center">Ensure that you have metamask installed and that you are using the Polygon
+        Mainnet.</p>
       <p class="text-center">Please note that this is experimental software, exercise caution.</p>
     </header>
 
@@ -37,24 +43,29 @@
         <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12"> -->
           <div class="card">
             <div class="card-body">
-              <button class="btn btn-primary btn-lg btn-block mb-3" id="connectButton" disabled></button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="ApproveMasterContract">Approve Master Contract</button>
               
-              <p>Your account no: <span id="getAccountsResult"></span></p>
-
-              <p>Your WMATIC balance: <span id="getWMATICResult"></span> </p>
-              <p> in USD: <span id="WMATICInUsd"></span> </p>
-
-              <p>Your USDC balance: <span id="getUSDCResult"></span></p>
-
-              <p>Your WBTC balance: <span id="getWBTCResult"></span> </p>
-              <p> in USD: <span id="WBTCInUsd"></span> </p>
-
-              <p>Your WETH balance: <span id="getWETHResult"></span> </p> 
-              <p> in USD: <span id="WETHInUsd"></span> </p>
-
-              <p>Your USD total: <span id="TOTALInUsd"></span> </p>
+              <input placeholder="USDC deposit amount" type="value" id="depositAmountUSDC"> 
+              <button type = "value" id="approveButton"> Approve </button>
+              <button type = "value" id="depositButton"> Deposit </button> <!-- need to disable this until approved?-->
               
-              <button class="btn btn-primary btn-lg btn-block mb-3" id="rebalance">Rebalance</button>
+              <!-- <button class="btn btn-primary btn-lg btn-block mb-3" id="swapAndRedeposit">swapUSDCintoFourTokensAndDepositBackToBB</button> -->
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="withdraw_BB_to_user">Withdraw $1 of USDC from Bentobox Dapp account back to user</button>
+              
+              <p>TVL: $<span id="TotalInUSD"></span></p>
+
+              <p>WMATIC  <span id="getWMATICResult"></span>   ( $<span id="WMATICInUsd"></span> ) </p>
+              <p></p>
+
+              <p>SUSHI   <span id="getSUSHIResult"></span>   ( $<span id="SUSHIInUsd"></span> )</p>
+              <p></p>
+
+              <p>WBTC    <span id="getWBTCResult"></span>   ( $<span id="WBTCInUsd"></span> )</p>
+              <p></p>
+
+              <p>WETH    <span id="getWETHResult"></span>   ( $<span id="WETHInUsd"></span> )</p> 
+              <p></p>
+              
             </div>
           </div>
         <!-- </div>
@@ -62,9 +73,6 @@
     </section>
 
     <section>
-      <!-- <button class="btn btn-primary btn-lg btn-block mb-3" id="confirmApprove" disabled="true">Approve?</button>
-      <button class="btn btn-primary btn-lg btn-block mb-3" id="confirmSwap" disabled="true">Confirm Swap?</button> -->
-
       <div class="alert alert-success" role="alert" id="swapStarted" style="display:none"> </div>
     </section>
   </main>
