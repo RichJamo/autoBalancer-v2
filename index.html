@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-  <title>Auto-Rebalancer</title>
+  <title>SMEB Index</title>
 
   <!-- Bootstrap -->
   <link href="./src/css/bootstrap.min.css" rel="stylesheet">
@@ -27,10 +27,10 @@
 <body>
   <main class="container-fluid">
     <header>
-      <h1 class="text-center">The BEMS Index</h1>
-      <p class="text-center">BTC, ETH, MATIC and SUSHI in an equally weighted, monthly rebalanced index.</p>
+      <h1 class="text-center">BentoBox SMEB Index</h1>
+      <p class="text-center">SUSHI, MATIC, ETH and BTC in an equally weighted, monthly rebalanced index.</p>
       <p class="text-center">Deposit USDC to participate in the index. Withdraw anytime, also in USDC. Fee of 0.3% on deposit (TBC).</p>
-      <p class="text-center">Index is fully-backed by the four crypto assets (wrapped versions of BTC, ETH and MATIC).</p>
+      <p class="text-center">Index is 100% composed of the four crypto assets (wrapped versions of MATIC, ETH and BTC).</p>
       <p class="text-center">Assets remain on BentoBox and can earn additional yield by doing so.</p>
 
       <p class="text-center">Ensure that you have metamask installed and that you are using the Polygon
@@ -49,8 +49,9 @@
               <button type = "value" id="approveButton"> Approve </button>
               <button type = "value" id="depositButton"> Deposit </button> <!-- need to disable this until approved?-->
               
-              <!-- <button class="btn btn-primary btn-lg btn-block mb-3" id="swapAndRedeposit">swapUSDCintoFourTokensAndDepositBackToBB</button> -->
-              <button class="btn btn-primary btn-lg btn-block mb-3" id="withdraw_BB_to_user">Withdraw $1 of USDC from Bentobox Dapp account back to user</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="swapFourTokens">swapUSDCintoFourTokens</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="DepositFromDapp">Move 4 tokens from Dapp back to Bentobox</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="withdraw_BB_to_user">Withdraw my funds</button>
               
               <p>TVL: $<span id="TotalInUSD"></span></p>
 
@@ -64,6 +65,9 @@
               <p></p>
 
               <p>WETH    <span id="getWETHResult"></span>   ( $<span id="WETHInUsd"></span> )</p> 
+              <p></p>
+
+              <p>Your share:    <span id="UserShareInPerc"></span>%   ( $<span id="USERshareInUSD"></span> )</p> 
               <p></p>
               
             </div>

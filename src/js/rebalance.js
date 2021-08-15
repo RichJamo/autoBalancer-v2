@@ -7,7 +7,7 @@ const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
 const QUICKSWAP_ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
 const SUSHISWAP_ROUTER = "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506"
 const BENTOBOX_MASTER_CONTRACT_ADDRESS = "0x0319000133d3AdA02600f0875d2cf03D442C3367";
-const BENTOBOX_BALANCER_DAPP_ADDRESS = "0x9c4fCF15580507f2F13De3b769119b52A7bB9473"; //insert the address I deployed to
+const BENTOBOX_BALANCER_DAPP_ADDRESS = "0xa681de8A2824Cfc945f62cD131BcbD541D59741E"; //insert the address I deployed to
 
 const MATIC_USD_ORACLE = "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0"
 const BTC_USD_ORACLE = "0xc907E116054Ad103354f2D350FD2514433D57F6f"
@@ -69,8 +69,10 @@ async function startApp(provider) {
   //Basic Actions Section
   const rebalanceOneButton = document.getElementById('rebalance_1');
   const rebalanceTwoButton = document.getElementById('rebalance_2');
-  const ApproveDepositButton = document.getElementById('approveDeposit');
+  const approveDepositButton = document.getElementById('approveDeposit');
   const rebalanceThreeButton = document.getElementById('rebalance_3');
+  const approveSwapsButton = document.getElementById('approveSwaps');
+  const approveSpendUSDCButton = document.getElementById('approveSpendUSDC');
 
   // const withdrawToUserButton = document.getElementById('withdraw_BB_to_user');
 
@@ -88,18 +90,20 @@ async function startApp(provider) {
   })
 
   rebalanceTwoButton.addEventListener('click', async () => {
-    var array_coins = await getTokenBalanceInfoForRebalance();
+    var array_coins = await getTokenBalanceInfoViaTokenContract();
 
     sortCoinsDescendingByDiffFromAvg(array_coins);
 
     await balanceAndRemoveOneCoin(array_coins);
   })
 
-  ApproveDepositButton.addEventListener('click', async () => {
-    giveApprovalFromDapp(WMATIC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, getBalance(WMATIC_ADDRESS));
-    giveApprovalFromDapp(SUSHI_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, getBalance(SUSHI_ADDRESS));
-    giveApprovalFromDapp(WBTC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, getBalance(WBTC_ADDRESS));
-    giveApprovalFromDapp(WETH_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, getBalance(WETH_ADDRESS));
+  approveDepositButton.addEventListener('click', async () => {
+    var amountToApprove = $("#approveAmountBento4tokens").val();
+
+    giveApprovalFromDapp(WMATIC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(amountToApprove, 18)); //getBalance(WMATIC_ADDRESS))
+    giveApprovalFromDapp(SUSHI_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(amountToApprove, 18)); //getBalance(SUSHI_ADDRESS));
+    giveApprovalFromDapp(WBTC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(amountToApprove, 8)); //getBalance(WBTC_ADDRESS));
+    giveApprovalFromDapp(WETH_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(amountToApprove, 18)); //getBalance(WETH_ADDRESS));
   })
 
   rebalanceThreeButton.addEventListener('click', async () => {
@@ -109,6 +113,21 @@ async function startApp(provider) {
     dappContract.depositToBento(getBalance(SUSHI_ADDRESS), SUSHI_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
     dappContract.depositToBento(getBalance(WBTC_ADDRESS), WBTC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
     dappContract.depositToBento(getBalance(WETH_ADDRESS), WETH_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
+  })
+
+  approveSwapsButton.addEventListener('click', async () => {
+    var amountToApprove = $("#approveAmountSushiSwap4tokens").val();
+
+    giveApprovalFromDapp(WMATIC_ADDRESS, SUSHISWAP_ROUTER, ethers.utils.parseUnits(amountToApprove, 18));//getBalance(WMATIC_ADDRESS));
+    giveApprovalFromDapp(SUSHI_ADDRESS, SUSHISWAP_ROUTER, ethers.utils.parseUnits(amountToApprove, 18));//etBalance(SUSHI_ADDRESS));
+    giveApprovalFromDapp(WBTC_ADDRESS, SUSHISWAP_ROUTER, ethers.utils.parseUnits(amountToApprove, 8));//getBalance(WBTC_ADDRESS));
+    giveApprovalFromDapp(WETH_ADDRESS, SUSHISWAP_ROUTER, ethers.utils.parseUnits(amountToApprove, 18));//getBalance(WETH_ADDRESS));
+  })
+
+  approveSpendUSDCButton.addEventListener('click', async () => {
+    var amountToApprove = $("#approveAmountBentoUSDC").val(); 
+
+    giveApprovalFromDapp(USDC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(amountToApprove, 6));//getBalance(USDC_ADDRESS));
   })
 }
 
@@ -240,7 +259,7 @@ async function getBalance(token_address) {
   }
 }
 
-async function getTokenBalanceInfoForRebalance() {
+async function getTokenBalanceInfoViaTokenContract() {
   
   function Coin(symbol, address, oracleAddress, decimals, balance, usd_balance, diff_from_average, usd_exchange_rate) { //in JS we create an object type by using a constructor function
     this.symbol = symbol;
@@ -294,8 +313,6 @@ async function getExchangeRate(oracle_address) {
   var oracle = new ethers.Contract(oracle_address, CHAINLINK_ORACLE_ABI, provider);
   try {
     var exchangeRate = await oracle.latestAnswer();
-    exchangeRate = exchangeRate.toNumber() //converts from BigNumber
-    exchangeRate = exchangeRate / (10 ** 8);
     return exchangeRate;
   } catch (error) {
     console.log(error);
@@ -337,7 +354,7 @@ async function withdrawBalanceFromBentoBoxToDapp(token_address) { //need to chan
   try {
     var dappContract = new ethers.Contract(BENTOBOX_BALANCER_DAPP_ADDRESS, bento_dapp_abi, signer);
     var token_balance = await dappContract.BentoTokenBalanceOf(token_address, user);
-    await dappContract.withdraw(token_balance, token_address, user, BENTOBOX_BALANCER_DAPP_ADDRESS);
+    await dappContract.withdraw(token_balance, token_address, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
   } catch (error) {
     console.log(error);
   }

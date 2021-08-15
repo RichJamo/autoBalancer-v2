@@ -11,6 +11,9 @@ contract bentoboxDapp {
     address public constant WETH_ADDRESS = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
     address public constant SUSHISWAP_ROUTER = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
     
+    uint256 public totalNumberOfShares;
+    mapping(address => uint256) public userNumberOfShares; 
+
     IBentoBoxV1 public BentoMasterContract = IBentoBoxV1(BENTOBOX_MASTER_CONTRACT_ADDRESS);
     IUniswapV2Router02 public sushiSwapRouter = IUniswapV2Router02(SUSHISWAP_ROUTER);
     //more variables here
@@ -23,6 +26,29 @@ contract bentoboxDapp {
         BentoMasterContract.registerProtocol();
     }
     
+    function updateSharesOnDeposit(address user, uint256 newSharesToBeAdded) public { //make this ownable - only contract itself can update this?
+        if (userNumberOfShares[user] ==0) {
+            userNumberOfShares[user] = newSharesToBeAdded; //use SafeMath here?
+        } else {
+            userNumberOfShares[user] += newSharesToBeAdded;
+        }
+        totalNumberOfShares += newSharesToBeAdded;
+    }
+
+    function updateSharesOnWithdrawal(address user) public { //make this ownable - only contract itself can update this?
+        require (userNumberOfShares[user] > 0, "Error - This user has no shares");
+        totalNumberOfShares -= userNumberOfShares[user];
+        userNumberOfShares[user] = 0;
+    }
+
+    function getUserShares(address user) public view returns (uint256 userShares) {
+        return userNumberOfShares[user];
+    }
+
+    function getTotalShares() public view returns (uint256 totalNumberOfShares) { //do I need this, if it's a public variable should be easy to get?
+        return totalNumberOfShares;
+    }
+
     function approve_spending (address token_address, address spender_address, uint256 amount_to_approve) public {
             IERC20(token_address).approve(spender_address, amount_to_approve);
     }
@@ -89,9 +115,9 @@ contract bentoboxDapp {
         return token_balance;
     }
     
-    function swap(uint256 _amountIn, uint256 _amountOutMin, address[] calldata _path, address _acct, uint256 _deadline) public returns (uint256 amount_out) {
+    function swap(uint256 _amountIn, uint256 _amountOutMin, address[] calldata _path, address _acct, uint256 _deadline) public {
         
-       amount_out = sushiSwapRouter.swapExactTokensForTokens(
+       sushiSwapRouter.swapExactTokensForTokens(
             _amountIn,
             _amountOutMin,
             _path,

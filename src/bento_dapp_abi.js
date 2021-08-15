@@ -164,6 +164,38 @@ var bento_dapp_abi = [
 	},
 	{
 		"inputs": [],
+		"name": "getTotalShares",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "totalNumberOfShares",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getUserShares",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "userShares",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "registerProtocol",
 		"outputs": [],
 		"stateMutability": "nonpayable",
@@ -216,6 +248,19 @@ var bento_dapp_abi = [
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "totalNumberOfShares",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -241,6 +286,56 @@ var bento_dapp_abi = [
 		"name": "transfer",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "newSharesToBeAdded",
+				"type": "uint256"
+			}
+		],
+		"name": "updateSharesOnDeposit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "updateSharesOnWithdrawal",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "userNumberOfShares",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
