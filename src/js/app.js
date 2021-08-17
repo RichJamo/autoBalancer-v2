@@ -15,9 +15,7 @@ const ETH_USD_ORACLE = "0xF9680D99D6C9589e2a93a78A04A279e509205945"
 const SUSHI_USD_ORACLE = "0x49b0c695039243bbfeb8ecd054eb70061fd54aa0"
 
 var user;
-/*****************************************/
-/* Detect the MetaMask Ethereum provider */
-/*****************************************/
+
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 const signer = provider.getSigner()
 
@@ -25,6 +23,10 @@ const dappContract_signer = new ethers.Contract(BENTOBOX_BALANCER_DAPP_ADDRESS, 
 const dappContract_provider = new ethers.Contract(BENTOBOX_BALANCER_DAPP_ADDRESS, bento_dapp_abi, provider);
 const BentoMasterContract_signer = new ethers.Contract(BENTOBOX_MASTER_CONTRACT_ADDRESS, bento_abi, signer);
 const BentoMasterContract_provider = new ethers.Contract(BENTOBOX_MASTER_CONTRACT_ADDRESS, bento_abi, provider);
+
+/*****************************************/
+/* Detect the MetaMask Ethereum provider */
+/*****************************************/
 
 //check that we are connected to Polygon/Matic network
 var chainId = await checkNetworkId(provider)
@@ -73,14 +75,17 @@ async function startApp(provider) {
   const depositButton = document.getElementById('depositButton');
   const approveButton = document.getElementById('approveButton');
 
-  const DepositFromDappButton = document.getElementById('DepositFromDapp');
+  const withdrawToDappButton = document.getElementById('withdrawToDapp');
   const swapFourTokensButton = document.getElementById('swapFourTokens');
+  const DepositFromDappButton = document.getElementById('DepositFromDapp');
+
   const withdrawToUserButton = document.getElementById('withdraw_BB_to_user');
 
   const accounts = await ethereum.request({ method: 'eth_accounts' });
   user = accounts[0];
 
   await displayBalances();
+
   await displayUSDBalances();
 
   ApproveMasterContractButton.addEventListener('click', async () => {
@@ -139,7 +144,8 @@ async function startApp(provider) {
     console.log(`Depositing ${depositAmountUSDC} of USDC to the BentoBox SMEB account`);
     $("#swapStarted").css("display", "block");
     $("#swapStarted").text(`Depositing ${depositAmountUSDC} of USDC to the BentoBox SMEB account`);
-    await dappContract_signer.depositToBento(depositAmountUSDC * 10 ** 6, USDC_ADDRESS, user, BENTOBOX_BALANCER_DAPP_ADDRESS);
+    var estimatedGasLimit = await dappContract_signer.estimateGas.depositToBento(depositAmountUSDC * 10 ** 6, USDC_ADDRESS, user, BENTOBOX_BALANCER_DAPP_ADDRESS);
+    await dappContract_signer.depositToBento(depositAmountUSDC * 10 ** 6, USDC_ADDRESS, user, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
     
     // update share of user for new deposit and update existing shares
     await updateSharesForDeposit(depositAmountUSDC);
@@ -167,10 +173,14 @@ async function startApp(provider) {
   // THEN DEPOSIT THOSE FOUR CRYPTOS BACK INTO THE BENTOBOX DAPP ACCOUNT
   if (window.confirm("Swaps all completed? Move tokens back to Bentobox?")) await depositFourTokensBackIntoBentoBox();
   })
- 
+  
+  // withdrawToDappButton.addEventListener('click', async () => {
+  //   var _depositAmountUSDC = $("#depositAmountUSDC").val();
+  //   await withdrawNewDepositFromBentoBoxToDapp(_depositAmountUSDC * 10 ** 6) //need to change this to withdraw all available balance?
+  // })
+  
   // swapFourTokensButton.addEventListener('click', async () => {
   //   var _depositAmountUSDC = $("#depositAmountUSDC").val();
-  //   console.log(_depositAmountUSDC)
   //   await swapUSDCintoFourTokens(_depositAmountUSDC);
   // })
 
@@ -216,18 +226,6 @@ async function startApp(provider) {
   })
 }
 
-async function getBalance(token_address) {
-  // create a new instance of a contract - in web3.js >1.0.0, will have to use "new web3.eth.Contract" (uppercase C)
-  var tokenContract = new ethers.Contract(token_address, token_abi, signer)
-  // get the balance of our user in that token
-  try {
-    var tokenBalance = await tokenContract.balanceOf(BENTOBOX_BALANCER_DAPP_ADDRESS);
-    return tokenBalance; //I'm guessing this is a BN (or a string?)
-  } catch (error) {
-    console.log(error)
-  }
-}
-
 async function getTokenInfoViaBentobox(accountOrContract) {
   
   function Coin(symbol, address, oracleAddress, decimals, balance, usd_balance, diff_from_average, usd_exchange_rate) { //in JS we create an object type by using a constructor function
@@ -267,75 +265,6 @@ async function getTokenInfoViaBentobox(accountOrContract) {
   return array_coins;
 }
 
-async function getTokenInfoViaTokenContract() {
-  
-  function Coin(symbol, address, oracleAddress, decimals, balance, usd_balance, diff_from_average, usd_exchange_rate) { //in JS we create an object type by using a constructor function
-    this.symbol = symbol;
-    this.address = address;
-    this.oracleAddress = oracleAddress;
-    this.decimals = decimals;
-    this.balance = balance;
-    this.usd_balance = usd_balance;
-    this.diff_from_average = diff_from_average;
-    this.usd_exchange_rate = usd_exchange_rate;
-  }
-
-  //create a coin object for each of our 4 assets
-  var WMATIC = new Coin("WMATIC", WMATIC_ADDRESS, MATIC_USD_ORACLE); 
-  var SUSHI = new Coin("SUSHI", SUSHI_ADDRESS, SUSHI_USD_ORACLE); 
-  var WBTC = new Coin("WBTC", WBTC_ADDRESS, BTC_USD_ORACLE); 
-  var WETH = new Coin("WETH", WETH_ADDRESS, ETH_USD_ORACLE);
-
-  var array_coins = [WMATIC, SUSHI, WBTC, WETH];
-  var total_in_usd = 0;
-
-  for (let coin of array_coins) {
-    coin.balance = await getBalance(coin.address);
-    coin.usd_exchange_rate = await getExchangeRate(coin.oracleAddress);
-    coin.decimals = await getDecimals(coin.address);
-    coin.usd_balance = parseFloat(ethers.utils.formatUnits(coin.balance, coin.decimals)) * coin.usd_exchange_rate;
-    total_in_usd += coin.usd_balance;
-  }
-
-  var no_of_assets = array_coins.length;
-  var target_per_asset = total_in_usd / no_of_assets;
-  for (let coin of array_coins) {
-    coin.diff_from_average = coin.usd_balance - target_per_asset;
-  }
-  return array_coins;
-}
-
-async function getBentoBoxBalance(token_address, accountOrContract) {
-  // create a new instance of a contract - in web3.js >1.0.0, will have to use "new web3.eth.Contract" (uppercase C)
-  try {
-    var token_balance = await dappContract_provider.BentoTokenBalanceOf(token_address, accountOrContract);
-    return token_balance;
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-async function getExchangeRate(oracle_address) {
-  var oracle = new ethers.Contract(oracle_address, CHAINLINK_ORACLE_ABI, provider);
-  try {
-    var exchangeRate = await oracle.latestAnswer();
-    return exchangeRate; //returns in BigNumber format
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-async function getDecimals(token_address) {
-  var tokenContract = new ethers.Contract(token_address, token_abi, provider)
-  // check how many decimals that token has
-  try {
-    var decimals = await tokenContract.decimals();//need to catch an error here - perhaps make this it's own function!
-    return decimals;
-  } catch (error) {
-    console.log(error);
-  }
-}
-
 async function displayBalances() {  
   getWMATICResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBentoBoxBalance(WMATIC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
 
@@ -366,21 +295,6 @@ async function displayUSDBalances() {
   USERshareInUSD.innerHTML = (userShares / totalShares * total_in_usd).toFixed(2); //TODO - neaten up this fix
 }
 
-async function withdrawBalanceFromBentoBoxToDapp(token_address) { //need to change this to withdraw all available balance?
-  try {
-
-    var token_balance = await dappContract_provider.BentoTokenBalanceOf(token_address, BENTOBOX_BALANCER_DAPP_ADDRESS); //TO DO - this is where we need to plug in user share!!
-    if (token_balance > 0) {
-      console.log(`Moving ${token_balance} of ${token_address} into mixing pool to convert back to USDC`);
-      $("#swapStarted").css("display", "block");
-      $("#swapStarted").text(`Moving ${token_balance} of ${token_address} into mixing pool to convert back to USDC`);
-      await dappContract_signer.withdraw(token_balance, token_address, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
-    }
-  } catch (error) {
-    console.log(error);
-  }
-}
-
 async function updateSharesForDeposit(depositAmountUSDC) {
   var array_coins = await getTokenInfoViaBentobox(BENTOBOX_BALANCER_DAPP_ADDRESS);
   var totalinUSD = array_coins[0].usd_balance + array_coins[1].usd_balance + array_coins[2].usd_balance + array_coins[3].usd_balance;
@@ -403,7 +317,8 @@ async function withdrawNewDepositFromBentoBoxToDapp(depositAmount) { //need to c
     console.log(`Moving ${depositAmount} of USDC into the Index mixing pool`);
     $("#swapStarted").css("display", "block");
     $("#swapStarted").text(`Moving ${depositAmount} of USDC into the Index mixing pool`);
-    await dappContract_signer.withdraw(depositAmount, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
+    var estimatedGasLimit = await dappContract_signer.estimateGas.withdraw(depositAmount, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
+    await dappContract_signer.withdraw(depositAmount, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
   } catch (error) {
     console.log(error);
   }
@@ -416,7 +331,8 @@ async function withdrawUserShareFromBentoBoxToDapp(token_address, user_share) { 
       console.log(`Moving ${user_share} of ${token_address} from BentoBox to mixing pool`);
       $("#swapStarted").css("display", "block");
       $("#swapStarted").text(`Moving ${user_share} of ${token_address} from BentoBox to mixing pool`);
-      await dappContract_signer.withdraw(user_share, token_address, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
+      var estimatedGasLimit = await dappContract_signer.estimateGas.withdraw(user_share, token_address, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
+      await dappContract_signer.withdraw(user_share, token_address, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
     }
   } catch (error) {
     console.log(error);
@@ -470,18 +386,6 @@ async function swapUSDCintoFourTokens(_depositAmountUSDC) {
   // })
 }
 
-async function depositFourTokensBackIntoBentoBox() {
-  $("#swapStarted").css("display", "block");
-  $("#swapStarted").text(`Moving four tokens back into the Bentobox pool`);
-  if(await getBalance(WMATIC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WMATIC_ADDRESS), WMATIC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
-  if(await getBalance(SUSHI_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(SUSHI_ADDRESS), SUSHI_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
-  if(await getBalance(WBTC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WBTC_ADDRESS), WBTC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
-  if(await getBalance(WETH_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WETH_ADDRESS), WETH_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
-  // if(await getBalance(USDC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(USDC_ADDRESS), USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
-  console.log("tokens being deposited back now..."); //TODO add listener(s) to confirm this with a bit more certainty
-  //TODO AND THEN REFRESH THE PAGE ONCE I'VE GOT THE CONFIRM - OR JUST RE-DISPLAY THE PRICES..
-}
-
 async function swapFourTokensIntoUSDC() {
   var array_coins = await getTokenInfoViaTokenContract(); 
 
@@ -498,7 +402,8 @@ async function depositUSDCBackIntoBentoBox() { //could I deposit straight into t
     console.log(`Moving ${USDC_balance} of USDC back on to Bentobox`);
     $("#swapStarted").css("display", "block");
     $("#swapStarted").text(`Moving ${USDC_balance} of USDC back on to Bentobox`);
-    await dappContract_signer.depositToBento(USDC_balance, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
+    var estimatedGasLimit = await dappContract_signer.estimateGas.depositToBento(USDC_balance, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
+    await dappContract_signer.depositToBento(USDC_balance, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
   }
 }
 
@@ -508,7 +413,9 @@ async function depositUSDCstraightBackToUser() { //could I deposit straight into
     console.log(`Moving ${USDC_balance} of USDC back on to Bentobox`);
     $("#swapStarted").css("display", "block");
     $("#swapStarted").text(`Moving ${USDC_balance} of USDC back on to Bentobox`);
-    await dappContract_signer.depositToBento(USDC_balance, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, user);
+    var estimatedGasLimit = await dappContract_signer.estimateGas.depositToBento(USDC_balance, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, user);
+
+    await dappContract_signer.depositToBento(USDC_balance, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, user, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
   }
 }
 
@@ -519,7 +426,8 @@ async function withdrawUSDCtoUserAccount() {
     console.log(`Withdrawing ${amountAvailableToWithdraw} of USDC back to ${user}`);
     $("#swapStarted").css("display", "block");
     $("#swapStarted").text(`Withdrawing ${amountAvailableToWithdraw} of USDC back into ${user}`);
-    await dappContract_signer.withdraw(amountAvailableToWithdraw, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, user);
+    var estimatedGasLimit = await dappContract_signer.estimateGas.withdraw(amountAvailableToWithdraw, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, user);
+    await dappContract_signer.withdraw(amountAvailableToWithdraw, USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, user, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
   } else {
     console.log(`No USDC available to withdraw at this point`);
     $("#swapStarted").css("display", "block");
@@ -547,6 +455,98 @@ async function giveApprovalFromUser(token_address, router_address, amountIn) {
     }
 }
 
+async function getBalance(token_address) {
+  // create a new instance of a contract - in web3.js >1.0.0, will have to use "new web3.eth.Contract" (uppercase C)
+  var tokenContract = new ethers.Contract(token_address, token_abi, signer)
+  // get the balance of our user in that token
+  try {
+    var tokenBalance = await tokenContract.balanceOf(BENTOBOX_BALANCER_DAPP_ADDRESS);
+    return tokenBalance; //I'm guessing this is a BN (or a string?)
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+async function getTokenInfoViaTokenContract() {
+  
+  function Coin(symbol, address, oracleAddress, decimals, balance, usd_balance, diff_from_average, usd_exchange_rate) { //in JS we create an object type by using a constructor function
+    this.symbol = symbol;
+    this.address = address;
+    this.oracleAddress = oracleAddress;
+    this.decimals = decimals;
+    this.balance = balance;
+    this.usd_balance = usd_balance;
+    this.diff_from_average = diff_from_average;
+    this.usd_exchange_rate = usd_exchange_rate;
+  }
+
+  //create a coin object for each of our 4 assets
+  var WMATIC = new Coin("WMATIC", WMATIC_ADDRESS, MATIC_USD_ORACLE); 
+  var SUSHI = new Coin("SUSHI", SUSHI_ADDRESS, SUSHI_USD_ORACLE); 
+  var WBTC = new Coin("WBTC", WBTC_ADDRESS, BTC_USD_ORACLE); 
+  var WETH = new Coin("WETH", WETH_ADDRESS, ETH_USD_ORACLE);
+
+  var array_coins = [WMATIC, SUSHI, WBTC, WETH];
+  var total_in_usd = 0;
+
+  for (let coin of array_coins) {
+    coin.balance = await getBalance(coin.address);
+    coin.usd_exchange_rate = await getExchangeRate(coin.oracleAddress);
+    coin.decimals = await getDecimals(coin.address);
+    coin.usd_balance = parseFloat(ethers.utils.formatUnits(coin.balance, coin.decimals)) * coin.usd_exchange_rate;
+    total_in_usd += coin.usd_balance;
+  }
+
+  var no_of_assets = array_coins.length;
+  var target_per_asset = total_in_usd / no_of_assets;
+  for (let coin of array_coins) {
+    coin.diff_from_average = coin.usd_balance - target_per_asset;
+  }
+  return array_coins;
+}
+
+async function withdrawBalanceFromBentoBoxToDapp(token_address) { //need to change this to withdraw all available balance?
+  try {
+
+    var token_balance = await dappContract_provider.BentoTokenBalanceOf(token_address, BENTOBOX_BALANCER_DAPP_ADDRESS); //TO DO - this is where we need to plug in user share!!
+    if (token_balance > 0) {
+      console.log(`Moving ${token_balance} of ${token_address} into mixing pool to convert back to USDC`);
+      $("#swapStarted").css("display", "block");
+      $("#swapStarted").text(`Moving ${token_balance} of ${token_address} into mixing pool to convert back to USDC`);
+      var estimatedGasLimit = await dappContract_signer.estimateGas.withdraw(token_balance, token_address, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
+      await dappContract_signer.withdraw(token_balance, token_address, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function executeDappSwap(_amountIn, _amountOutMin, _path, _acct, _deadline) {
+  console.log(`Swapping ${_amountIn} of ${_path[0]} into ${_path[1]}`);
+  $("#swapStarted").css("display", "block");
+  $("#swapStarted").text(`Swapping ${_amountIn} of ${_path[0]} into ${_path[1]}`);
+  var estimatedGasLimit = await dappContract_signer.estimateGas.swap(_amountIn, _amountOutMin, _path, _acct, _deadline);
+  try {
+    await dappContract_signer.swap(_amountIn, _amountOutMin, _path, _acct, _deadline, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+  }
+  catch (error) {
+    console.log(error); //can I get it to try again here??
+  }
+}
+
+async function depositFourTokensBackIntoBentoBox() {
+  $("#swapStarted").css("display", "block");
+  $("#swapStarted").text(`Moving four tokens back into the Bentobox pool`);
+  var estimatedGasLimit = await dappContract_signer.estimateGas.depositToBento(getBalance(WMATIC_ADDRESS), WMATIC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
+  if(await getBalance(WMATIC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WMATIC_ADDRESS), WMATIC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+  if(await getBalance(SUSHI_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(SUSHI_ADDRESS), SUSHI_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+  if(await getBalance(WBTC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WBTC_ADDRESS), WBTC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+  if(await getBalance(WETH_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WETH_ADDRESS), WETH_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+  // if(await getBalance(USDC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(USDC_ADDRESS), USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
+  console.log("tokens being deposited back now..."); //TODO add listener(s) to confirm this with a bit more certainty
+  //TODO AND THEN REFRESH THE PAGE ONCE I'VE GOT THE CONFIRM - OR JUST RE-DISPLAY THE PRICES..
+}
+
 async function giveApprovalFromDapp(token_address, router_address, amountIn) {
   // give router_address approval to spend dapp's tokens
   try {
@@ -558,18 +558,37 @@ async function giveApprovalFromDapp(token_address, router_address, amountIn) {
   }
 }
 
-async function executeDappSwap(_amountIn, _amountOutMin, _path, _acct, _deadline) {
-  console.log(`Swapping ${_amountIn} of ${_path[0]} into ${_path[1]}`);
-  $("#swapStarted").css("display", "block");
-  $("#swapStarted").text(`Swapping ${_amountIn} of ${_path[0]} into ${_path[1]}`);
-
+async function getBentoBoxBalance(token_address, accountOrContract) {
+  // create a new instance of a contract - in web3.js >1.0.0, will have to use "new web3.eth.Contract" (uppercase C)
   try {
-    return dappContract_signer.swap (_amountIn, _amountOutMin, _path, _acct, _deadline);
-  }
-  catch (error) {
-    console.log(error); //can I get it to try again here??
+    var token_balance = await dappContract_provider.BentoTokenBalanceOf(token_address, accountOrContract);
+    return token_balance;
+  } catch (error) {
+    console.log(error)
   }
 }
+
+async function getExchangeRate(oracle_address) {
+  var oracle = new ethers.Contract(oracle_address, CHAINLINK_ORACLE_ABI, provider);
+  try {
+    var exchangeRate = await oracle.latestAnswer();
+    return exchangeRate; //returns in BigNumber format
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getDecimals(token_address) {
+  var tokenContract = new ethers.Contract(token_address, token_abi, provider)
+  // check how many decimals that token has
+  try {
+    var decimals = await tokenContract.decimals();//need to catch an error here - perhaps make this it's own function!
+    return decimals;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 
 
 
