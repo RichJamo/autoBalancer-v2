@@ -27,23 +27,26 @@
 <body>
   <main class="container-fluid">
     <header>
-      <h1 class="text-center">BentoBox SMEB Index</h1>
-      <p class="text-center">SUSHI, MATIC, ETH and BTC in an equally weighted, monthly rebalanced index.</p>
+      <h1 class="text-left">BentoBox SMEB</h1>
+      <h4 class="text-left">Non-custodial Automated Portfolio Management</h4>
+      <!-- <p class="text-center">SUSHI, MATIC, ETH and BTC in an equally weighted, monthly rebalanced index.</p>
       <p class="text-center">Deposit USDC to participate in the index. Withdraw anytime, also in USDC. Fee of 0.3% on deposit (TBC).</p>
       <p class="text-center">Index is 100% composed of the four crypto assets (wrapped versions of MATIC, ETH and BTC).</p>
       <p class="text-center">Assets remain on BentoBox and can earn additional yield by doing so.</p>
 
       <p class="text-center">Ensure that you have metamask installed and that you are using the Polygon
         Mainnet.</p>
-      <p class="text-center">Please note that this dapp is still under development, exercise caution.</p>
+      <p class="text-center">Please note that this dapp is still under development, exercise caution.</p> -->
     </header>
 
     <section>
-      <!-- <div class="row d-flex justify-content-center">-->
+      <div class="row d-flex justify-content-center">
         <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12"> 
           <div class="card">
             <div class="card-body">
-              <p>TVL: $<span id="TotalInUSD"></span></p>
+              <h4>Equal Weighted Portfolio <span class="text-muted">   WMATIC    SUSHI    WETH    WBTC</span></h4>
+              <img src="./src/performance.png" class="rounded" alt="Portfolio performance"> 
+              <p>Total Portfolio Value $<span id="TotalInUSD"></span></p>
 
               <p>WMATIC  <span id="getWMATICResult"></span>   ( $<span id="WMATICInUsd"></span> ) </p>
               <p></p>
@@ -68,11 +71,12 @@
         <div class="col-xl-4 col-lg-6 col-md-12 col-sm-12 col-12"> 
           <div class="card">
             <div class="card-body">
+              <!-- <button class="btn btn-primary btn-lg btn-block mb-3" id="RegisterProtocol">Register Protocol</button> -->
               <button class="btn btn-primary btn-lg btn-block mb-3" id="ApproveMasterContract">Approve Master Contract</button>
               
-              <input placeholder="USDC deposit amount" type="value" id="depositAmountUSDC"> 
-              <button type = "value" id="approveButton"> Approve </button>
-              <button type = "value" id="depositButton"> Deposit </button> <!-- need to disable this until approved?-->
+              <input placeholder="USDC deposit amount" type="value" class="form-control" id="depositAmountUSDC"> 
+              <button type = "value" id="approveButton" class="btn btn-primary"> Approve </button>
+              <button type = "value" id="depositButton" class="btn btn-primary"> Deposit </button> <!-- need to disable this until approved?-->
               
               <!-- <button class="btn btn-primary btn-lg btn-block mb-3" id="withdrawToDapp">Withdraw USDC from Bento to Dapp</button>
 
@@ -84,7 +88,7 @@
           </div>
           
         </div>
-      <!-- </div> -->
+      </div>
     </section>
 
     <section>
