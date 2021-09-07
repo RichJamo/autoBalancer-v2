@@ -1,0 +1,54 @@
+.matic {
+    padding: 14px 17px;
+    margin-bottom: 11px;
+    background: #f7f7f7;
+    border-radius: 8px;
+}
+
+.MATICResult {
+    color: #4285f4;
+    text-transform: uppercase;
+}
+
+.matic span#getWMATICResult {
+    font-size: 33px;
+    display: block;
+    margin-top: -6px;
+    margin-bottom: -7px;
+    color: #000;
+}
+
+.matic .MATICusd {
+    opacity: 0.6;
+}
+
+.approve-box input {
+    background: transparent;
+    border: 1px solid #ccc;
+    padding: 3px;
+}
+
+.approve-box.btn-holder {
+    background: #efefef;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.btn-holder {
+    margin-bottom: 25px;
+}
+
+.btn.btn-lg {
+    font-size: 15px;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    padding: 18px;
+}
+
+.graph {
+    margin-bottom: 30px;
+}
+
+.graph img {
+    width: 100%;
+}

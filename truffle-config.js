@@ -17,12 +17,15 @@
  * phrase from a file you've .gitignored so it doesn't accidentally become public.
  *
  */
+require('dotenv').config();
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 // const infuraKey = "fj4jll3k.....";
 
 const fs = require('fs');
 const mnemonic = fs.readFileSync(".secret").toString().trim();
+
+const api_key = fs.readFileSync(".env").toString().trim();
 
 module.exports = {
   /**
@@ -73,9 +76,15 @@ module.exports = {
       //  },
       //  evmVersion: "byzantium"
       // }
-    }
+    },
+    
   },
-
+  plugins: [
+    'truffle-plugin-verify'
+  ],
+  api_keys: {
+    polygonscan: process.env.MY_API_KEY
+  },
   // Truffle DB is currently disabled by default; to enable it, change enabled: false to enabled: true
   //
   // Note: if you migrated your contracts prior to enabling this field in your Truffle project and want
