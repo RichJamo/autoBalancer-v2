@@ -7,7 +7,7 @@ const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
 const QUICKSWAP_ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
 const SUSHISWAP_ROUTER = "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506"
 const BENTOBOX_MASTER_CONTRACT_ADDRESS = "0x0319000133d3AdA02600f0875d2cf03D442C3367";
-const BENTOBOX_BALANCER_DAPP_ADDRESS = "0x6d0f70E2E20fafa8bdeB1f269a61Ca4327B2Cc44"; //insert the address I deployed to
+const BENTOBOX_BALANCER_DAPP_ADDRESS = "0x922067b3437bD4D12D55738052bfc14082156F90"; //insert the address I deployed to
 
 const MATIC_USD_ORACLE = "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0"
 const BTC_USD_ORACLE = "0xc907E116054Ad103354f2D350FD2514433D57F6f"
@@ -89,9 +89,9 @@ async function startApp(provider) {
 
   await displayUSDBalances();
 
-  RegisterProtocolButton.addEventListener('click', async () => {
-    await dappContract_signer.registerProtocol(); //,{from: BENTOBOX_BALANCER_DAPP_ADDRESS}
-  })
+  // RegisterProtocolButton.addEventListener('click', async () => {
+  //   await dappContract_signer.registerProtocol(); 
+  // })
 
   ApproveMasterContractButton.addEventListener('click', async () => {
     const masterContract = BENTOBOX_BALANCER_DAPP_ADDRESS;
@@ -247,12 +247,12 @@ async function displayUSDBalances() {
   WETHInUsd.innerHTML = weth_usd.toFixed(2) || 'Not able to get accounts';
 
   var total_in_usd = wmatic_usd + sushi_usd + wbtc_usd + weth_usd;
-  TotalInUSD.innerHTML = total_in_usd.toFixed(2);
+  TotalInUSD.innerHTML = '$ ' + total_in_usd.toFixed(2);
 
   var userShares = (await dappContract_provider.getUserShares(user)).toNumber()
   var totalShares = (await dappContract_provider.totalNumberOfShares()).toNumber() //lesson here - overwriting public variable getter function??
-  UserShareInPerc.innerHTML = (userShares / totalShares * 100).toFixed(1); //can add a percentage thingie here!
-  USERshareInUSD.innerHTML = (userShares / totalShares * total_in_usd).toFixed(2); //TODO - neaten up this fix
+  UserShareInPerc.innerHTML = (userShares / totalShares * 100).toFixed(1) + '%'; //can add a percentage thingie here!
+  USERshareInUSD.innerHTML = '$ ' + (userShares / totalShares * total_in_usd).toFixed(2); //TODO - neaten up this fix
 }
 
 async function updateSharesForDeposit(depositAmountUSDC) {

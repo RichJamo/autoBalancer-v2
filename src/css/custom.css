@@ -1,16 +1,16 @@
-.matic {
+.display_numbers {
     padding: 14px 17px;
     margin-bottom: 11px;
     background: #f7f7f7;
     border-radius: 8px;
 }
 
-.MATICResult {
+.headline_number {
     color: #4285f4;
     text-transform: uppercase;
 }
 
-.matic span#getWMATICResult {
+.display_numbers .bigNumber {
     font-size: 33px;
     display: block;
     margin-top: -6px;
@@ -18,7 +18,7 @@
     color: #000;
 }
 
-.matic .MATICusd {
+.display_numbers .byline_number {
     opacity: 0.6;
 }
 
