@@ -50,12 +50,36 @@ module.exports = {
       port: 8545
     },
     polygon: {
-      provider: () => new HDWalletProvider(mnemonic, `https://polygon-mainnet.infura.io/v3/1a34a37dbf4e44409187911e6573a844`),
+      provider: () => new HDWalletProvider(mnemonic, 'https://polygon-mainnet.g.alchemy.com/v2/nW4WNtS3FPnPLA01urA7QQFccgjppV8F'),
       network_id: 137,       // Ropsten's id
       // gas: 5500000,        // Ropsten has a lower block limit than mainnet
       confirmations: 2,    // # of confs to wait between deployments. (default: 0)
       timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
       skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
+    },
+    harmony: {
+      provider: () => {
+        return new HDWalletProvider({
+          mnemonic,
+          providerOrUrl: 'https://api.s0.b.hmny.io', // https://api.s0.t.hmny.io for mainnet
+          derivationPath: `m/44'/1023'/0'/0/`
+        });
+      },
+      network_id: 1666600000 //1666700000 for testnet
+    },
+    testnetHar: {
+      provider: () => {
+        if (!privateKeyTest.trim()) {
+          throw new Error(
+            'Please enter a private key with funds, you can use the default one'
+          );
+        }
+        return new HDWalletProvider({
+          privateKeys: [privateKeyTest],
+          providerOrUrl: 'https://api.s0.b.hmny.io',
+        });
+      },
+      network_id: 1666700000, //do i have to change this to mainnet too?
     }
   },
   contracts_directory: './contracts/',

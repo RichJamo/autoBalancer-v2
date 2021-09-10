@@ -7,7 +7,7 @@ const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
 const QUICKSWAP_ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
 const SUSHISWAP_ROUTER = "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506"
 const BENTOBOX_MASTER_CONTRACT_ADDRESS = "0x0319000133d3AdA02600f0875d2cf03D442C3367";
-const BENTOBOX_BALANCER_DAPP_ADDRESS = "0x922067b3437bD4D12D55738052bfc14082156F90"; //insert the address I deployed to
+const BENTOBOX_BALANCER_DAPP_ADDRESS = "0x52B8634260b461Ce27b73fC1BA29924bB51AA28d"; //insert the address I deployed to
 
 const MATIC_USD_ORACLE = "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0"
 const BTC_USD_ORACLE = "0xc907E116054Ad103354f2D350FD2514433D57F6f"
@@ -19,7 +19,7 @@ var user;
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 const signer = provider.getSigner()
 
-
+const dappContract_signer = new ethers.Contract(BENTOBOX_BALANCER_DAPP_ADDRESS, bento_dapp_abi, signer);
 
 /*****************************************/
 /* Detect the MetaMask Ethereum provider */
@@ -72,56 +72,35 @@ async function startApp(provider) {
   const rebalanceOneButton = document.getElementById('rebalance_1');
   const rebalanceTwoButton = document.getElementById('rebalance_2');
   const rebalanceThreeButton = document.getElementById('rebalance_3');
-
-  const approveDepositButton = document.getElementById('approveDeposit');
-  const approveSwapsButton = document.getElementById('approveSwaps');
-  const approveSpendUSDCButton = document.getElementById('approveSpendUSDC');
+  const RegisterProtocolButton = document.getElementById('RegisterProtocol');
 
   const accounts = await ethereum.request({ method: 'eth_accounts' });
   user = accounts[0];
 
   rebalanceOneButton.addEventListener('click', async () => {
     //pull coins back into the dapp from bentobox, before we start analysing them (use bentobox.withdraw, don't need approval)
-    withdrawBalanceFromBentoBoxToDapp(WMATIC_ADDRESS) 
+    withdrawBalanceFromBentoBoxToDapp(WMATIC_ADDRESS)
     withdrawBalanceFromBentoBoxToDapp(SUSHI_ADDRESS)
     withdrawBalanceFromBentoBoxToDapp(WBTC_ADDRESS)
     withdrawBalanceFromBentoBoxToDapp(WETH_ADDRESS)
+    //call dappContract.rebalanceOne()
   })
 
   rebalanceTwoButton.addEventListener('click', async () => {
     var array_coins = await getTokenInfoViaTokenContract();
 
     sortCoinsDescendingByDiffFromAvg(array_coins);
-
+    //might this bit be partly easier to implement in solidity - it will wait better?
     await balanceAndRemoveOneCoin(array_coins);
   })
 
   rebalanceThreeButton.addEventListener('click', async () => {
     depositFourTokensBackIntoBentoBox();
+    //just call rebalanceThree() on dapp contract - do I need to put in a check that balances are >0?
   })
 
-  approveDepositButton.addEventListener('click', async () => {
-    var amountToApprove = $("#approveAmountBento4tokens").val();
-
-    giveApprovalFromDapp(WMATIC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(amountToApprove, 18)); //getBalance(WMATIC_ADDRESS))
-    giveApprovalFromDapp(SUSHI_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(amountToApprove, 18)); //getBalance(SUSHI_ADDRESS));
-    giveApprovalFromDapp(WBTC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(amountToApprove, 8)); //getBalance(WBTC_ADDRESS));
-    giveApprovalFromDapp(WETH_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(amountToApprove, 18)); //getBalance(WETH_ADDRESS));
-  })
-
-  approveSwapsButton.addEventListener('click', async () => {
-    var amountToApprove = $("#approveAmountSushiSwap4tokens").val();
-
-    giveApprovalFromDapp(WMATIC_ADDRESS, SUSHISWAP_ROUTER, ethers.utils.parseUnits(amountToApprove, 18));//getBalance(WMATIC_ADDRESS));
-    giveApprovalFromDapp(SUSHI_ADDRESS, SUSHISWAP_ROUTER, ethers.utils.parseUnits(amountToApprove, 18));//etBalance(SUSHI_ADDRESS));
-    giveApprovalFromDapp(WBTC_ADDRESS, SUSHISWAP_ROUTER, ethers.utils.parseUnits(amountToApprove, 8));//getBalance(WBTC_ADDRESS));
-    giveApprovalFromDapp(WETH_ADDRESS, SUSHISWAP_ROUTER, ethers.utils.parseUnits(amountToApprove, 18));//getBalance(WETH_ADDRESS));
-  })
-
-  approveSpendUSDCButton.addEventListener('click', async () => {
-    var amountToApprove = $("#approveAmountBentoUSDC").val(); 
-
-    giveApprovalFromDapp(USDC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(amountToApprove, 6));//getBalance(USDC_ADDRESS));
+  RegisterProtocolButton.addEventListener('click', async () => {
+    await dappContract_signer.registerProtocol();
   })
 }
 
@@ -282,7 +261,7 @@ async function getBalance(token_address) {
 }
 
 async function getTokenInfoViaTokenContract() {
-  
+
   function Coin(symbol, address, oracleAddress, decimals, balance, usd_balance, diff_from_average, usd_exchange_rate) { //in JS we create an object type by using a constructor function
     this.symbol = symbol;
     this.address = address;
@@ -295,9 +274,9 @@ async function getTokenInfoViaTokenContract() {
   }
 
   //create a coin object for each of our 4 assets
-  var WMATIC = new Coin("WMATIC", WMATIC_ADDRESS, MATIC_USD_ORACLE); 
-  var SUSHI = new Coin("SUSHI", SUSHI_ADDRESS, SUSHI_USD_ORACLE); 
-  var WBTC = new Coin("WBTC", WBTC_ADDRESS, BTC_USD_ORACLE); 
+  var WMATIC = new Coin("WMATIC", WMATIC_ADDRESS, MATIC_USD_ORACLE);
+  var SUSHI = new Coin("SUSHI", SUSHI_ADDRESS, SUSHI_USD_ORACLE);
+  var WBTC = new Coin("WBTC", WBTC_ADDRESS, BTC_USD_ORACLE);
   var WETH = new Coin("WETH", WETH_ADDRESS, ETH_USD_ORACLE);
 
   var array_coins = [WMATIC, SUSHI, WBTC, WETH];
@@ -352,10 +331,10 @@ async function depositFourTokensBackIntoBentoBox() {
   $("#swapStarted").css("display", "block");
   $("#swapStarted").text(`Moving four tokens back into the Bentobox pool`);
   var estimatedGasLimit = await dappContract_signer.estimateGas.depositToBento(getBalance(WMATIC_ADDRESS), WMATIC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
-  if(await getBalance(WMATIC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WMATIC_ADDRESS), WMATIC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
-  if(await getBalance(SUSHI_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(SUSHI_ADDRESS), SUSHI_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
-  if(await getBalance(WBTC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WBTC_ADDRESS), WBTC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
-  if(await getBalance(WETH_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WETH_ADDRESS), WETH_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+  if (await getBalance(WMATIC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WMATIC_ADDRESS), WMATIC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+  if (await getBalance(SUSHI_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(SUSHI_ADDRESS), SUSHI_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+  if (await getBalance(WBTC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WBTC_ADDRESS), WBTC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+  if (await getBalance(WETH_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(WETH_ADDRESS), WETH_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
   // if(await getBalance(USDC_ADDRESS) > 0) dappContract_signer.depositToBento(getBalance(USDC_ADDRESS), USDC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS);
   console.log("tokens being deposited back now..."); //TODO add listener(s) to confirm this with a bit more certainty
   //TODO AND THEN REFRESH THE PAGE ONCE I'VE GOT THE CONFIRM - OR JUST RE-DISPLAY THE PRICES..

@@ -36,8 +36,6 @@ contract bentoboxDapp {
 
     address public constant SUSHISWAP_ROUTER = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
     
-    AggregatorV3Interface internal priceFeed;
-
     uint256 public totalNumberOfShares;
     mapping(address => uint256) public userNumberOfShares; 
 
@@ -56,15 +54,14 @@ contract bentoboxDapp {
     /**
      * Returns the latest price
      */
-    function getLatestPrice(address token_address) public returns (int) {
-        priceFeed = AggregatorV3Interface(token_address);
+    function getLatestPrice(address _oracle_address) public view returns (int) {
         (
             uint80 roundID, 
             int price,
             uint startedAt,
             uint timeStamp,
             uint80 answeredInRound
-        ) = priceFeed.latestRoundData();
+        ) = AggregatorV3Interface(_oracle_address).latestRoundData();
         return price;
     }
 
@@ -112,10 +109,10 @@ contract bentoboxDapp {
 
         approve_spending(USDC_ADDRESS, SUSHISWAP_ROUTER, amount_);
 
-        uint256 WMATIC_balanceInUSD = getUSDBentoTokenBalanceOf(WMATIC_ADDRESS, 18);
-        uint256 SUSHI_balanceInUSD = getUSDBentoTokenBalanceOf(SUSHI_ADDRESS, 18);
-        uint256 WETH_balanceInUSD = getUSDBentoTokenBalanceOf(WETH_ADDRESS, 18);
-        uint256 WBTC_balanceInUSD = getUSDBentoTokenBalanceOf(WBTC_ADDRESS, 8);
+        uint256 WMATIC_balanceInUSD = getUSDBentoTokenBalanceOf(WMATIC_ADDRESS, MATIC_USD_ORACLE, 18);
+        uint256 SUSHI_balanceInUSD = getUSDBentoTokenBalanceOf(SUSHI_ADDRESS, SUSHI_USD_ORACLE, 18);
+        uint256 WETH_balanceInUSD = getUSDBentoTokenBalanceOf(WETH_ADDRESS, ETH_USD_ORACLE, 18);
+        uint256 WBTC_balanceInUSD = getUSDBentoTokenBalanceOf(WBTC_ADDRESS, BTC_USD_ORACLE, 8);
 
         uint256 Total_in_USD = WMATIC_balanceInUSD.add(SUSHI_balanceInUSD).add(WETH_balanceInUSD).add(WBTC_balanceInUSD);
         
@@ -133,17 +130,19 @@ contract bentoboxDapp {
             setSharesFirstTime(address_from);
         }
     }
-    function getUSDBentoTokenBalanceOf(address token_address, uint256 token_decimals) public returns (uint256) {
+
+    function getUSDBentoTokenBalanceOf(address token_address, address oracle_address, uint256 token_decimals) public view returns (uint256) {
+        // uint256 token_decimals = ERC20(token_address).decimals();
         return BentoTokenBalanceOf(token_address, address(this))
-        .mul(uint256(getLatestPrice(token_address)))
+        .mul(uint256(getLatestPrice(oracle_address)))
         .div(10**(token_decimals+2));
     }
 
     function swapProportionately(uint256 WMATIC_amount, uint256 SUSHI_amount, uint256 WETH_amount, uint256 WBTC_amount, uint256 totalUSDAmount, uint256 depositAmount) public {
-        uint256 WMATIC_share = WMATIC_amount.div(totalUSDAmount).mul(depositAmount); 
-        uint256 SUSHI_share = SUSHI_amount.div(totalUSDAmount).mul(depositAmount);
-        uint256 WETH_share = WETH_amount.div(totalUSDAmount).mul(depositAmount);
-        uint256 WBTC_share = WBTC_amount.div(totalUSDAmount).mul(depositAmount);
+        uint256 WMATIC_share = WMATIC_amount.mul(depositAmount).div(totalUSDAmount); 
+        uint256 SUSHI_share = SUSHI_amount.mul(depositAmount).div(totalUSDAmount);
+        uint256 WETH_share = WETH_amount.mul(depositAmount).div(totalUSDAmount);
+        uint256 WBTC_share = WBTC_amount.mul(depositAmount).div(totalUSDAmount);
 
         swap(WMATIC_share, uint256(0), USDCToWMATICPath, address(this), uint256(-1));
         swap(SUSHI_share, uint256(0), USDCToSUSHIPath, address(this), uint256(-1));
@@ -175,7 +174,7 @@ contract bentoboxDapp {
     }
 
     function updateSharesOnDeposit(address user, uint256 total_in_USD, uint256 deposit_amount) public { //make this ownable - only contract itself can update this?
-        uint256 newSharesForUser = deposit_amount.div(total_in_USD).mul(totalNumberOfShares);
+        uint256 newSharesForUser = deposit_amount.mul(totalNumberOfShares).div(total_in_USD);
         totalNumberOfShares = totalNumberOfShares.add(newSharesForUser);
         if (userNumberOfShares[user] > 0) {
             userNumberOfShares[user] = userNumberOfShares[user].add(newSharesForUser);
@@ -196,8 +195,14 @@ contract bentoboxDapp {
         0 //leave blank I think...
         );
     }
-    function withdrawUserFunds(address user, uint256 WMATIC_amount, uint256 SUSHI_amount,uint256 WETH_amount,uint256 WBTC_amount) public {
+    function withdrawUserFunds(address user) public {
         //do I need an approval here?
+
+        uint256 WMATIC_amount = userNumberOfShares[user].mul(BentoTokenBalanceOf(WMATIC_ADDRESS, address(this))).div(totalNumberOfShares);
+        uint256 SUSHI_amount = userNumberOfShares[user].mul(BentoTokenBalanceOf(SUSHI_ADDRESS, address(this))).div(totalNumberOfShares);
+        uint256 WETH_amount = userNumberOfShares[user].mul(BentoTokenBalanceOf(WETH_ADDRESS, address(this))).div(totalNumberOfShares);
+        uint256 WBTC_amount = userNumberOfShares[user].mul(BentoTokenBalanceOf(WBTC_ADDRESS, address(this))).div(totalNumberOfShares);
+
         withdrawAllFourTokensFromBento(WMATIC_amount, SUSHI_amount, WETH_amount, WBTC_amount);
 
         approveSpendingWholeBalance(WMATIC_ADDRESS, SUSHISWAP_ROUTER);
@@ -210,7 +215,7 @@ contract bentoboxDapp {
         swapWholeBalanceBackToUSDC(WETH_ADDRESS);
         swapWholeBalanceBackToUSDC(WBTC_ADDRESS);
 
-        approve_spending(USDC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, 9999999999999999999999999);
+        approveSpendingWholeBalance(USDC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS);
         
         depositTokenBalanceToBento(USDC_ADDRESS, address(this), address(this));
 
@@ -282,6 +287,20 @@ contract bentoboxDapp {
             _acct,
             _deadline);
         }
+
+    function rebalanceOne() public {
+        uint256 WMATIC_amount = BentoTokenBalanceOf(WMATIC_ADDRESS, address(this));
+        uint256 SUSHI_amount = BentoTokenBalanceOf(SUSHI_ADDRESS, address(this));
+        uint256 WETH_amount = BentoTokenBalanceOf(WETH_ADDRESS, address(this));
+        uint256 WBTC_amount = BentoTokenBalanceOf(WBTC_ADDRESS, address(this));
+
+        withdrawAllFourTokensFromBento(WMATIC_amount, SUSHI_amount, WETH_amount, WBTC_amount);
+        }
+
+    function rebalanceThree() public {
+        depositAllFourTokensBackToBento();
+        }
+        
     }
     
 
