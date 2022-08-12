@@ -8,11 +8,13 @@
   <title>SMEB Index</title>
 
   <!-- Bootstrap -->
+  <link rel="stylesheet" href="./src/css/modal.css">
   <link href="./src/css/custom.css" rel="stylesheet">
   <link href="./src/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&amp;display=swap">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.14.1/css/mdb.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./src/css/metamask.css" type="text/css">
+
 
   <script src="./src/token_abi.js"></script>
   <script src="./src/chainlink_abi.js"></script>
@@ -21,7 +23,6 @@
   <script src="./src/js/ethers.umd.min.js" type="application/javascript"></script>
   <script src="./src/bento_abi.js"></script>
   <script src="./src/bento_dapp_abi.js"></script>
-
 </head>
 
 <body data-new-gr-c-s-check-loaded="14.1028.0" data-gr-ext-installed="">
@@ -33,6 +34,40 @@
     </header>
 
     <section>
+      <!-- Button to open the modal login form -->
+      <button onclick="document.getElementById('id01').style.display='block'">Login</button>
+
+      <!-- The Modal -->
+      <div id="id01" class="modal">
+        <span onclick="document.getElementById('id01').style.display='none'" class="close"
+          title="Close Modal">&times;</span>
+
+        <!-- Modal Content -->
+        <form class="modal-content animate" action="/action_page.php">
+          <div class="imgcontainer">
+            <img src="img_avatar2.png" alt="Avatar" class="avatar">
+          </div>
+
+          <div class="container">
+            <label for="uname"><b>Username</b></label>
+            <input type="text" placeholder="Enter Username" name="uname" required>
+
+            <label for="psw"><b>Password</b></label>
+            <input type="password" placeholder="Enter Password" name="psw" required>
+
+            <button type="submit">Login</button>
+            <label>
+              <input type="checkbox" checked="checked" name="remember"> Remember me
+            </label>
+          </div>
+
+          <div class="container" style="background-color:#f1f1f1">
+            <button type="button" onclick="document.getElementById('id01').style.display='none'"
+              class="cancelbtn">Cancel</button>
+            <span class="psw">Forgot <a href="#">password?</a></span>
+          </div>
+        </form>
+      </div>
       <div class="row d-flex justify-content-center">
       </div>
       <div class="col-xl-8 col-lg-8 col-md-8 col-sm-12 col-12">
