@@ -7,7 +7,7 @@ const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
 const QUICKSWAP_ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
 const SUSHISWAP_ROUTER = "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506"
 const BENTOBOX_MASTER_CONTRACT_ADDRESS = "0x0319000133d3AdA02600f0875d2cf03D442C3367";
-const BENTOBOX_BALANCER_DAPP_ADDRESS = "0x52B8634260b461Ce27b73fC1BA29924bB51AA28d"; //insert the address I deployed to
+const BENTOBOX_BALANCER_DAPP_ADDRESS = "0x6DbB1Ca56288eC8A16577880E03a3186F1b0eBb7" //"0x52B8634260b461Ce27b73fC1BA29924bB51AA28d"; //insert the address I deployed to
 
 const MATIC_USD_ORACLE = "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0"
 const SUSHI_USD_ORACLE = "0x49b0c695039243bbfeb8ecd054eb70061fd54aa0"
@@ -17,8 +17,79 @@ const BTC_USD_ORACLE = "0xc907E116054Ad103354f2D350FD2514433D57F6f"
 var user;
 
 const provider = new ethers.providers.Web3Provider(window.ethereum)
-const signer = provider.getSigner()
+const signer = await provider.getSigner()
 
+// const forwarderOrigin = 'http://localhost:9010';
+
+// const initialize = () => {
+//   //Basic Actions Section
+//   const onboardButton = document.getElementById('connectButton');
+//   // const getAccountsButton = document.getElementById('getAccounts');
+//   // const getAccountsResult = document.getElementById('getAccountsResult');
+
+//   // //Created check function to see if the MetaMask extension is installed
+//   // const isMetaMaskInstalled = () => {
+//   //   //Have to check the ethereum binding on the window object to see if it's installed
+//   //   const { ethereum } = window;
+//   //   return Boolean(ethereum && ethereum.isMetaMask);
+//   // };
+
+//   // //We create a new MetaMask onboarding object to use in our app
+//   // const onboarding = new MetaMaskOnboarding({ forwarderOrigin });
+
+//   //This will start the onboarding proccess
+//   // const onClickInstall = () => {
+//   //   onboardButton.innerText = 'Onboarding in progress';
+//   //   onboardButton.disabled = true;
+//   //   //On this object we have startOnboarding which will start the onboarding process for our end user
+//   //   onboarding.startOnboarding();
+//   // };
+
+//   const onClickConnect = async () => {
+//     try {
+//       // Will open the MetaMask UI
+//       // You should disable this button while the request is pending!
+//       await ethereum.request({ method: 'eth_requestAccounts' });
+//     } catch (error) {
+//       console.error(error);
+//     }
+//   };
+
+//   const MetaMaskClientCheck = () => {
+//     //Now we check to see if Metmask is installed
+//     if (!isMetaMaskInstalled()) {
+//       //If it isn't installed we ask the user to click to install it
+//       onboardButton.innerText = 'Click here to install MetaMask!';
+//       //When the button is clicked we call th is function
+//       onboardButton.onclick = onClickInstall;
+//       //The button is now disabled
+//       onboardButton.disabled = false;
+//     } else {
+//       //If MetaMask is installed we ask the user to connect to their wallet
+//       onboardButton.innerText = 'Connect';
+//       //When the button is clicked we call this function to connect the users MetaMask Wallet
+//       onboardButton.onclick = onClickConnect;
+//       //The button is now disabled
+//       onboardButton.disabled = false;
+//     }
+//   };
+
+//   //Eth_Accounts-getAccountsButton
+//   getAccountsButton.addEventListener('click', async () => {
+//     //we use eth_accounts because it returns a list of addresses owned by us.
+//     const accounts = await ethereum.request({ method: 'eth_accounts' });
+//     //We take the first address in the array of addresses and display it
+//     getAccountsResult.innerHTML = accounts[0] || 'Not able to get accounts';
+//   });
+
+//   MetaMaskClientCheck();
+// };
+
+// window.addEventListener('DOMContentLoaded', initialize);
+
+// console.log(signer)
+// user = await signer.getAddress()
+// console.log(user)
 const dappContract_signer = new ethers.Contract(BENTOBOX_BALANCER_DAPP_ADDRESS, bento_dapp_abi, signer);
 const dappContract_provider = new ethers.Contract(BENTOBOX_BALANCER_DAPP_ADDRESS, bento_dapp_abi, provider);
 const BentoMasterContract_signer = new ethers.Contract(BENTOBOX_MASTER_CONTRACT_ADDRESS, bento_abi, signer);
@@ -71,16 +142,16 @@ async function checkNetworkId(_provider) {
 }
 
 async function startApp(provider) {
-  const RegisterProtocolButton = document.getElementById('RegisterProtocol');
+  // const RegisterProtocolButton = document.getElementById('RegisterProtocol');
   const ApproveMasterContractButton = document.getElementById('ApproveMasterContract'); //ok to have same name for id and variable?
   const depositButton = document.getElementById('depositButton');
   const approveButton = document.getElementById('approveButton');
 
   const withdrawToUserButton = document.getElementById('withdraw_BB_to_user');
 
-  const accounts = await ethereum.request({ method: 'eth_accounts' });
+  const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
   user = accounts[0];
-
+  console.log(user)
   await displayBalances();
 
   await displayUSDBalances();
@@ -170,12 +241,17 @@ async function displayUSDBalances() {
   WBTCInUsd.innerHTML = wbtc_usd.toFixed(2) || 'Not able to get accounts';
   var weth_usd = array_coins[3].usd_balance;
   WETHInUsd.innerHTML = weth_usd.toFixed(2) || 'Not able to get accounts';
+  console.log('got here 1')
 
   var total_in_usd = wmatic_usd + sushi_usd + wbtc_usd + weth_usd;
   TotalInUSD.innerHTML = '$ ' + total_in_usd.toFixed(2);
-
+  console.log('got here 2')
   var userShares = (await dappContract_provider.getUserShares(user)).toNumber()
+  console.log('got here 3')
+
   var totalShares = (await dappContract_provider.totalNumberOfShares()).toNumber() //lesson here - overwriting public variable getter function??
+  console.log('got here 4')
+
   UserShareInPerc.innerHTML = (userShares / totalShares * 100).toFixed(1) + '%'; //can add a percentage thingie here!
   USERshareInUSD.innerHTML = '$ ' + (userShares / totalShares * total_in_usd).toFixed(2); //TODO - neaten up this fix
 }
