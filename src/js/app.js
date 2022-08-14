@@ -6,8 +6,7 @@ const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
 
 const QUICKSWAP_ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
 const SUSHISWAP_ROUTER = "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506"
-const BENTOBOX_MASTER_CONTRACT_ADDRESS = "0x0319000133d3AdA02600f0875d2cf03D442C3367";
-const BENTOBOX_BALANCER_DAPP_ADDRESS = "0x6DbB1Ca56288eC8A16577880E03a3186F1b0eBb7" //"0x52B8634260b461Ce27b73fC1BA29924bB51AA28d"; //insert the address I deployed to
+const AUTO_BALANCER_DAPP_ADDRESS = "0xAeB88AC543d0838eaDf50E5509805d0c24A27e56" //"0x52B8634260b461Ce27b73fC1BA29924bB51AA28d"; //insert the address I deployed to
 
 const MATIC_USD_ORACLE = "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0"
 const SUSHI_USD_ORACLE = "0x49b0c695039243bbfeb8ecd054eb70061fd54aa0"
@@ -90,10 +89,7 @@ const signer = await provider.getSigner()
 // console.log(signer)
 // user = await signer.getAddress()
 // console.log(user)
-const dappContract_signer = new ethers.Contract(BENTOBOX_BALANCER_DAPP_ADDRESS, bento_dapp_abi, signer);
-const dappContract_provider = new ethers.Contract(BENTOBOX_BALANCER_DAPP_ADDRESS, bento_dapp_abi, provider);
-const BentoMasterContract_signer = new ethers.Contract(BENTOBOX_MASTER_CONTRACT_ADDRESS, bento_abi, signer);
-const BentoMasterContract_provider = new ethers.Contract(BENTOBOX_MASTER_CONTRACT_ADDRESS, bento_abi, provider);
+
 
 /*****************************************/
 /* Detect the MetaMask Ethereum provider */
@@ -142,8 +138,6 @@ async function checkNetworkId(_provider) {
 }
 
 async function startApp(provider) {
-  // const RegisterProtocolButton = document.getElementById('RegisterProtocol');
-  const ApproveMasterContractButton = document.getElementById('ApproveMasterContract'); //ok to have same name for id and variable?
   const depositButton = document.getElementById('depositButton');
   const approveButton = document.getElementById('approveButton');
 
@@ -153,53 +147,7 @@ async function startApp(provider) {
   user = accounts[0];
   console.log(user)
   await displayBalances();
-
   await displayUSDBalances();
-
-  ApproveMasterContractButton.addEventListener('click', async () => {
-    const masterContract = BENTOBOX_BALANCER_DAPP_ADDRESS;
-    const approved = true;
-    const chainId = 137;
-
-    const warning = approved ? 'Give FULL access to funds in (and approved to) BentoBox?' : 'Revoke access to BentoBox?';
-    const nonce = await BentoMasterContract_provider.nonces(user);
-
-    const message = {
-      warning,
-      user,
-      masterContract,
-      approved,
-      nonce,
-    };
-
-    const domain = {
-      name: 'BentoBox V1',
-      chainId: chainId,
-      verifyingContract: BENTOBOX_MASTER_CONTRACT_ADDRESS
-    };
-
-    const types = {
-      SetMasterContractApproval: [
-        { name: 'warning', type: 'string' },
-        { name: 'user', type: 'address' },
-        { name: 'masterContract', type: 'address' },
-        { name: 'approved', type: 'bool' },
-        { name: 'nonce', type: 'uint256' }
-      ]
-    };
-
-    const signature = await signer._signTypedData(domain, types, message);
-    const { r, s, v } = ethers.utils.splitSignature(signature);
-
-    await BentoMasterContract_signer.setMasterContractApproval(
-      user, //user
-      BENTOBOX_BALANCER_DAPP_ADDRESS, //master contract - 
-      true, //isApproved
-      v,// uint8 v
-      r,// bytes32 r
-      s // bytes32 s
-    );
-  })
 
   approveButton.addEventListener('click', async () => {
     var depositAmountUSDC = $("#depositAmountUSDC").val(); //put in some checks here? positive number, between x and y, user has enough funds...
@@ -211,8 +159,8 @@ async function startApp(provider) {
     console.log(`Depositing ${depositAmountUSDC} of USDC to the BentoBox SMEB account`);
     $("#swapStarted").css("display", "block");
     $("#swapStarted").text(`Depositing ${depositAmountUSDC} of USDC to the BentoBox SMEB account`);
-    var estimatedGasLimit = await dappContract_signer.estimateGas.depositUserFunds(depositAmountUSDC * 10 ** 6, USDC_ADDRESS, user, BENTOBOX_BALANCER_DAPP_ADDRESS);
-    await dappContract_signer.depositUserFunds(depositAmountUSDC * 10 ** 6, USDC_ADDRESS, user, BENTOBOX_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+    var estimatedGasLimit = await dappContract_signer.estimateGas.depositUserFunds(depositAmountUSDC * 10 ** 6, USDC_ADDRESS, user, AUTO_BALANCER_DAPP_ADDRESS);
+    await dappContract_signer.depositUserFunds(depositAmountUSDC * 10 ** 6, USDC_ADDRESS, user, AUTO_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
   })
 
   withdrawToUserButton.addEventListener('click', async () => {
@@ -222,17 +170,17 @@ async function startApp(provider) {
 }
 
 async function displayBalances() {
-  getWMATICResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBentoBoxBalance(WMATIC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
+  getWMATICResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(WMATIC_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
 
-  getSUSHIResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBentoBoxBalance(SUSHI_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
+  getSUSHIResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(SUSHI_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
 
-  getWBTCResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBentoBoxBalance(WBTC_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS), 8)).toFixed(6) || 'Not able to get accounts';
+  getWBTCResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(WBTC_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 8)).toFixed(6) || 'Not able to get accounts';
 
-  getWETHResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBentoBoxBalance(WETH_ADDRESS, BENTOBOX_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
+  getWETHResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(WETH_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
 }
 
 async function displayUSDBalances() {
-  var array_coins = await getTokenInfoViaBentobox(BENTOBOX_BALANCER_DAPP_ADDRESS);
+  var array_coins = await getTokenInfoViaBentobox(AUTO_BALANCER_DAPP_ADDRESS);
   var wmatic_usd = array_coins[0].usd_balance;
   WMATICInUsd.innerHTML = wmatic_usd.toFixed(2) || 'Not able to get accounts'; //8 decimals for oracle input, 18 for WMATIC
   var sushi_usd = array_coins[1].usd_balance;
@@ -279,7 +227,7 @@ async function getTokenInfoViaBentobox(accountOrContract) {
   var total_in_usd = 0;
 
   for (let coin of array_coins) {
-    coin.balance = await getBentoBoxBalance(coin.address, accountOrContract);
+    coin.balance = await getBalance(coin.address, accountOrContract);
     coin.usd_exchange_rate = await getExchangeRate(coin.oracleAddress);
     coin.decimals = await getDecimals(coin.address);
     coin.usd_balance = parseFloat((parseFloat(ethers.utils.formatUnits(coin.balance, coin.decimals)) * parseFloat(ethers.utils.formatUnits(coin.usd_exchange_rate, 8))).toFixed(6));
@@ -308,10 +256,10 @@ async function giveApprovalFromUser(token_address, router_address, amountIn) {
   }
 }
 
-async function getBentoBoxBalance(token_address, accountOrContract) {
+async function getBalance(token_address, accountOrContract) {
   // create a new instance of a contract - in web3.js >1.0.0, will have to use "new web3.eth.Contract" (uppercase C)
   try {
-    var token_balance = await dappContract_provider.BentoTokenBalanceOf(token_address, accountOrContract);
+    var token_balance = await token_instance.balanceOf(AUTO_BALANCER_DAPP_ADDRESS);
     return token_balance;
   } catch (error) {
     console.log(error)
