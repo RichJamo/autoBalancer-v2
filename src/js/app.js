@@ -18,6 +18,9 @@ var user;
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 const signer = await provider.getSigner()
 
+const dappContract_signer = new ethers.Contract(AUTO_BALANCER_DAPP_ADDRESS, balancer_dapp_abi, signer);
+const dappContract_provider = new ethers.Contract(AUTO_BALANCER_DAPP_ADDRESS, balancer_dapp_abi, provider);
+
 // const forwarderOrigin = 'http://localhost:9010';
 
 // const initialize = () => {
@@ -180,7 +183,7 @@ async function displayBalances() {
 }
 
 async function displayUSDBalances() {
-  var array_coins = await getTokenInfoViaBentobox(AUTO_BALANCER_DAPP_ADDRESS);
+  var array_coins = await getTokenInfo(AUTO_BALANCER_DAPP_ADDRESS);
   var wmatic_usd = array_coins[0].usd_balance;
   WMATICInUsd.innerHTML = wmatic_usd.toFixed(2) || 'Not able to get accounts'; //8 decimals for oracle input, 18 for WMATIC
   var sushi_usd = array_coins[1].usd_balance;
@@ -204,7 +207,7 @@ async function displayUSDBalances() {
   USERshareInUSD.innerHTML = '$ ' + (userShares / totalShares * total_in_usd).toFixed(2); //TODO - neaten up this fix
 }
 
-async function getTokenInfoViaBentobox(accountOrContract) {
+async function getTokenInfo(accountOrContract) {
 
   function Coin(symbol, address, oracleAddress, decimals, balance, usd_balance, diff_from_average, usd_exchange_rate) { //in JS we create an object type by using a constructor function
     this.symbol = symbol;
@@ -259,7 +262,7 @@ async function giveApprovalFromUser(token_address, router_address, amountIn) {
 async function getBalance(token_address, accountOrContract) {
   // create a new instance of a contract - in web3.js >1.0.0, will have to use "new web3.eth.Contract" (uppercase C)
   try {
-    var token_balance = await token_instance.balanceOf(AUTO_BALANCER_DAPP_ADDRESS);
+    var token_balance = await dappContract_provider.tokenBalanceOf(token_address, accountOrContract);
     return token_balance;
   } catch (error) {
     console.log(error)
