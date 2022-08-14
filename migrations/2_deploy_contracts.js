@@ -1,5 +1,5 @@
-var bentoboxDapp = artifacts.require("./bentoboxDapp.sol");
+var autoBalancer = artifacts.require("./autoBalancer.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(bentoboxDapp);
+  deployer.deploy(autoBalancer);
 };
