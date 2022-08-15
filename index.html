@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-  <title>SMEB Index</title>
+  <title>BEMQ Index</title>
 
   <!-- Bootstrap -->
   <link href="./src/css/custom.css" rel="stylesheet">
@@ -19,8 +19,7 @@
   <script src="./src/router_abi.js"></script>
   <script src="./src/router_abi_QS.js"></script>
   <script src="./src/js/ethers.umd.min.js" type="application/javascript"></script>
-  <script src="./src/bento_abi.js"></script>
-  <script src="./src/bento_dapp_abi.js"></script>
+  <script src="./src/balancer_dapp_abi.js"></script>
   <!-- <script src="@metamask/onboarding"></script> -->
 
 </head>
@@ -28,7 +27,7 @@
 <body data-new-gr-c-s-check-loaded="14.1028.0" data-gr-ext-installed="">
   <main class="container-fluid">
     <header>
-      <h1 class="text-left">BentoBox SMEB</h1>
+      <h1 class="text-left">BEMQ</h1>
       <h4 class="text-left">Non-custodial Automated Portfolio Management</h4>
 
     </header>
@@ -41,16 +40,16 @@
 
 
           <div class="row">
-            <h4>Equal Weighted Portfolio <span class="text-muted"> WMATIC SUSHI WETH WBTC</span></h4>
+            <h4>Equal Weighted Portfolio <span class="text-muted"> WMATIC QUICK WETH WBTC</span></h4>
             <div class="graph">
               <img src="./src/performance.png" class="rounded" alt="Portfolio performance">
             </div>
             <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
               <div class="display_numbers">
                 <div class="headline_number">
-                  SUSHI <span class="bigNumber" id="getSUSHIResult"></span>
+                  QUICK <span class="bigNumber" id="getQUICKResult"></span>
                 </div>
-                <div class="byline_number">($ <span id="SUSHIInUsd"></span> )</div>
+                <div class="byline_number">($ <span id="QUICKInUsd"></span> )</div>
               </div>
             </div>
 

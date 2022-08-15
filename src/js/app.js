@@ -1,15 +1,15 @@
+const AUTO_BALANCER_DAPP_ADDRESS = "0x9c878A6271316880ec2325E6d745e42b8FffFEa6" //"0x52B8634260b461Ce27b73fC1BA29924bB51AA28d"; //insert the address I deployed to
+
 const WMATIC_ADDRESS = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
-const SUSHI_ADDRESS = "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a"
+const QUICK_ADDRESS = "0xB5C064F955D8e7F38fE0460C556a72987494eE17"
 const WETH_ADDRESS = "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619"
 const WBTC_ADDRESS = "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6"
 const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
 
 const QUICKSWAP_ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
-const SUSHISWAP_ROUTER = "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506"
-const AUTO_BALANCER_DAPP_ADDRESS = "0xAeB88AC543d0838eaDf50E5509805d0c24A27e56" //"0x52B8634260b461Ce27b73fC1BA29924bB51AA28d"; //insert the address I deployed to
 
 const MATIC_USD_ORACLE = "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0"
-const SUSHI_USD_ORACLE = "0x49b0c695039243bbfeb8ecd054eb70061fd54aa0"
+const QUICK_USD_ORACLE = "0xa058689f4bCa95208bba3F265674AE95dED75B6D"
 const ETH_USD_ORACLE = "0xF9680D99D6C9589e2a93a78A04A279e509205945"
 const BTC_USD_ORACLE = "0xc907E116054Ad103354f2D350FD2514433D57F6f"
 
@@ -20,79 +20,6 @@ const signer = await provider.getSigner()
 
 const dappContract_signer = new ethers.Contract(AUTO_BALANCER_DAPP_ADDRESS, balancer_dapp_abi, signer);
 const dappContract_provider = new ethers.Contract(AUTO_BALANCER_DAPP_ADDRESS, balancer_dapp_abi, provider);
-
-// const forwarderOrigin = 'http://localhost:9010';
-
-// const initialize = () => {
-//   //Basic Actions Section
-//   const onboardButton = document.getElementById('connectButton');
-//   // const getAccountsButton = document.getElementById('getAccounts');
-//   // const getAccountsResult = document.getElementById('getAccountsResult');
-
-//   // //Created check function to see if the MetaMask extension is installed
-//   // const isMetaMaskInstalled = () => {
-//   //   //Have to check the ethereum binding on the window object to see if it's installed
-//   //   const { ethereum } = window;
-//   //   return Boolean(ethereum && ethereum.isMetaMask);
-//   // };
-
-//   // //We create a new MetaMask onboarding object to use in our app
-//   // const onboarding = new MetaMaskOnboarding({ forwarderOrigin });
-
-//   //This will start the onboarding proccess
-//   // const onClickInstall = () => {
-//   //   onboardButton.innerText = 'Onboarding in progress';
-//   //   onboardButton.disabled = true;
-//   //   //On this object we have startOnboarding which will start the onboarding process for our end user
-//   //   onboarding.startOnboarding();
-//   // };
-
-//   const onClickConnect = async () => {
-//     try {
-//       // Will open the MetaMask UI
-//       // You should disable this button while the request is pending!
-//       await ethereum.request({ method: 'eth_requestAccounts' });
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   };
-
-//   const MetaMaskClientCheck = () => {
-//     //Now we check to see if Metmask is installed
-//     if (!isMetaMaskInstalled()) {
-//       //If it isn't installed we ask the user to click to install it
-//       onboardButton.innerText = 'Click here to install MetaMask!';
-//       //When the button is clicked we call th is function
-//       onboardButton.onclick = onClickInstall;
-//       //The button is now disabled
-//       onboardButton.disabled = false;
-//     } else {
-//       //If MetaMask is installed we ask the user to connect to their wallet
-//       onboardButton.innerText = 'Connect';
-//       //When the button is clicked we call this function to connect the users MetaMask Wallet
-//       onboardButton.onclick = onClickConnect;
-//       //The button is now disabled
-//       onboardButton.disabled = false;
-//     }
-//   };
-
-//   //Eth_Accounts-getAccountsButton
-//   getAccountsButton.addEventListener('click', async () => {
-//     //we use eth_accounts because it returns a list of addresses owned by us.
-//     const accounts = await ethereum.request({ method: 'eth_accounts' });
-//     //We take the first address in the array of addresses and display it
-//     getAccountsResult.innerHTML = accounts[0] || 'Not able to get accounts';
-//   });
-
-//   MetaMaskClientCheck();
-// };
-
-// window.addEventListener('DOMContentLoaded', initialize);
-
-// console.log(signer)
-// user = await signer.getAddress()
-// console.log(user)
-
 
 /*****************************************/
 /* Detect the MetaMask Ethereum provider */
@@ -154,16 +81,17 @@ async function startApp(provider) {
 
   approveButton.addEventListener('click', async () => {
     var depositAmountUSDC = $("#depositAmountUSDC").val(); //put in some checks here? positive number, between x and y, user has enough funds...
-    await giveApprovalFromUser(USDC_ADDRESS, BENTOBOX_MASTER_CONTRACT_ADDRESS, ethers.utils.parseUnits(depositAmountUSDC.toString(), 6));
+    await giveApprovalFromUser(USDC_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS, ethers.utils.parseUnits(depositAmountUSDC.toString(), 6));
   })
 
   depositButton.addEventListener('click', async () => {
     var depositAmountUSDC = $("#depositAmountUSDC").val(); //put in some checks here? positive number, between x and y, user has enough funds...
-    console.log(`Depositing ${depositAmountUSDC} of USDC to the BentoBox SMEB account`);
+    console.log(`Depositing ${depositAmountUSDC} of USDC to the BEMQ account`);
     $("#swapStarted").css("display", "block");
-    $("#swapStarted").text(`Depositing ${depositAmountUSDC} of USDC to the BentoBox SMEB account`);
-    var estimatedGasLimit = await dappContract_signer.estimateGas.depositUserFunds(depositAmountUSDC * 10 ** 6, USDC_ADDRESS, user, AUTO_BALANCER_DAPP_ADDRESS);
-    await dappContract_signer.depositUserFunds(depositAmountUSDC * 10 ** 6, USDC_ADDRESS, user, AUTO_BALANCER_DAPP_ADDRESS, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+    $("#swapStarted").text(`Depositing ${depositAmountUSDC} of USDC to the BEMQ account`);
+    var estimatedGasLimit = await dappContract_signer.estimateGas.depositUserFunds(depositAmountUSDC * 10 ** 6);
+    console.log("got here")
+    await dappContract_signer.depositUserFunds(depositAmountUSDC * 10 ** 6, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
   })
 
   withdrawToUserButton.addEventListener('click', async () => {
@@ -175,7 +103,7 @@ async function startApp(provider) {
 async function displayBalances() {
   getWMATICResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(WMATIC_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
 
-  getSUSHIResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(SUSHI_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
+  getQUICKResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(QUICK_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
 
   getWBTCResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(WBTC_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 8)).toFixed(6) || 'Not able to get accounts';
 
@@ -186,22 +114,17 @@ async function displayUSDBalances() {
   var array_coins = await getTokenInfo(AUTO_BALANCER_DAPP_ADDRESS);
   var wmatic_usd = array_coins[0].usd_balance;
   WMATICInUsd.innerHTML = wmatic_usd.toFixed(2) || 'Not able to get accounts'; //8 decimals for oracle input, 18 for WMATIC
-  var sushi_usd = array_coins[1].usd_balance;
-  SUSHIInUsd.innerHTML = sushi_usd.toFixed(2) || 'Not able to get accounts';
+  var quick_usd = array_coins[1].usd_balance;
+  QUICKInUsd.innerHTML = quick_usd.toFixed(2) || 'Not able to get accounts';
   var wbtc_usd = array_coins[2].usd_balance;
   WBTCInUsd.innerHTML = wbtc_usd.toFixed(2) || 'Not able to get accounts';
   var weth_usd = array_coins[3].usd_balance;
   WETHInUsd.innerHTML = weth_usd.toFixed(2) || 'Not able to get accounts';
-  console.log('got here 1')
 
-  var total_in_usd = wmatic_usd + sushi_usd + wbtc_usd + weth_usd;
+  var total_in_usd = wmatic_usd + quick_usd + wbtc_usd + weth_usd;
   TotalInUSD.innerHTML = '$ ' + total_in_usd.toFixed(2);
-  console.log('got here 2')
   var userShares = (await dappContract_provider.getUserShares(user)).toNumber()
-  console.log('got here 3')
-
   var totalShares = (await dappContract_provider.totalNumberOfShares()).toNumber() //lesson here - overwriting public variable getter function??
-  console.log('got here 4')
 
   UserShareInPerc.innerHTML = (userShares / totalShares * 100).toFixed(1) + '%'; //can add a percentage thingie here!
   USERshareInUSD.innerHTML = '$ ' + (userShares / totalShares * total_in_usd).toFixed(2); //TODO - neaten up this fix
@@ -222,18 +145,25 @@ async function getTokenInfo(accountOrContract) {
 
   //create a coin object for each of our 4 assets
   var WMATIC = new Coin("WMATIC", WMATIC_ADDRESS, MATIC_USD_ORACLE);
-  var SUSHI = new Coin("SUSHI", SUSHI_ADDRESS, SUSHI_USD_ORACLE);
+  var QUICK = new Coin("QUICK", QUICK_ADDRESS, QUICK_USD_ORACLE);
   var WBTC = new Coin("WBTC", WBTC_ADDRESS, BTC_USD_ORACLE);
   var WETH = new Coin("WETH", WETH_ADDRESS, ETH_USD_ORACLE);
 
-  var array_coins = [WMATIC, SUSHI, WBTC, WETH];
+  var array_coins = [WMATIC, QUICK, WBTC, WETH];
   var total_in_usd = 0;
 
   for (let coin of array_coins) {
     coin.balance = await getBalance(coin.address, accountOrContract);
+    console.log(coin.balance.toString())
     coin.usd_exchange_rate = await getExchangeRate(coin.oracleAddress);
+    console.log(coin.usd_exchange_rate.toString ())
+
     coin.decimals = await getDecimals(coin.address);
+    console.log(coin.decimals)
+
     coin.usd_balance = parseFloat((parseFloat(ethers.utils.formatUnits(coin.balance, coin.decimals)) * parseFloat(ethers.utils.formatUnits(coin.usd_exchange_rate, 8))).toFixed(6));
+    console.log(coin.usd_balance)
+
     total_in_usd += coin.usd_balance;
   }
 
@@ -251,7 +181,7 @@ async function giveApprovalFromUser(token_address, router_address, amountIn) {
   var tokenContract = new ethers.Contract(token_address, token_abi, signer)
   // give router_address approval to spend user's tokens
   try {
-    var approved = await tokenContract.approve(router_address, amountIn); //approve(spender, amount)
+    var approved = await tokenContract.approve(router_address, amountIn);
     return approved;
 
   } catch (error) {

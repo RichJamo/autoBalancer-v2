@@ -1,38 +1,10 @@
-var bento_dapp_abi = [
-  {
-    "inputs": [],
-    "name": "BENTOBOX_MASTER_CONTRACT_ADDRESS",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
+var balancer_dapp_abi = [
   {
     "inputs": [],
     "name": "BTC_USD_ORACLE",
     "outputs": [
       {
         "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [],
-    "name": "BentoMasterContract",
-    "outputs": [
-      {
-        "internalType": "contract IBentoBoxV1",
         "name": "",
         "type": "address"
       }
@@ -71,7 +43,7 @@ var bento_dapp_abi = [
   },
   {
     "inputs": [],
-    "name": "SUSHISWAP_ROUTER",
+    "name": "QUICKSWAP_ROUTER",
     "outputs": [
       {
         "internalType": "address",
@@ -91,7 +63,7 @@ var bento_dapp_abi = [
         "type": "uint256"
       }
     ],
-    "name": "SUSHIToUSDCPath",
+    "name": "QUICKToUSDCPath",
     "outputs": [
       {
         "internalType": "address",
@@ -105,7 +77,7 @@ var bento_dapp_abi = [
   },
   {
     "inputs": [],
-    "name": "SUSHI_ADDRESS",
+    "name": "QUICK_ADDRESS",
     "outputs": [
       {
         "internalType": "address",
@@ -119,7 +91,7 @@ var bento_dapp_abi = [
   },
   {
     "inputs": [],
-    "name": "SUSHI_USD_ORACLE",
+    "name": "QUICK_USD_ORACLE",
     "outputs": [
       {
         "internalType": "address",
@@ -139,7 +111,7 @@ var bento_dapp_abi = [
         "type": "uint256"
       }
     ],
-    "name": "USDCToSUSHIPath",
+    "name": "USDCToQUICKPath",
     "outputs": [
       {
         "internalType": "address",
@@ -329,7 +301,49 @@ var bento_dapp_abi = [
   },
   {
     "inputs": [],
-    "name": "sushiSwapRouter",
+    "name": "counter",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "interval",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "lastTimeStamp",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "quickSwapRouter",
     "outputs": [
       {
         "internalType": "contract IUniswapV2Router02",
@@ -381,14 +395,13 @@ var bento_dapp_abi = [
     "payable": true
   },
   {
-    "inputs": [],
-    "name": "registerProtocol",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_oracle_address",
+        "type": "address"
+      }
+    ],
     "name": "getLatestPrice",
     "outputs": [
       {
@@ -400,6 +413,44 @@ var bento_dapp_abi = [
     "stateMutability": "view",
     "type": "function",
     "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "name": "checkUpkeep",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "upkeepNeeded",
+        "type": "bool"
+      },
+      {
+        "internalType": "bytes",
+        "name": "performData",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "performData",
+        "type": "bytes"
+      }
+    ],
+    "name": "performUpkeep",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [
@@ -463,49 +514,6 @@ var bento_dapp_abi = [
         "internalType": "uint256",
         "name": "amount_",
         "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "token_address",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "address_from",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "address_to",
-        "type": "address"
-      }
-    ],
-    "name": "depositToBento",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "token_address",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "address_from",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "address_to",
-        "type": "address"
       }
     ],
     "name": "depositUserFunds",
@@ -521,12 +529,17 @@ var bento_dapp_abi = [
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "oracle_address",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "token_decimals",
         "type": "uint256"
       }
     ],
-    "name": "getUSDBentoTokenBalanceOf",
+    "name": "getUSDTokenBalanceOf",
     "outputs": [
       {
         "internalType": "uint256",
@@ -534,8 +547,9 @@ var bento_dapp_abi = [
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [
@@ -546,7 +560,7 @@ var bento_dapp_abi = [
       },
       {
         "internalType": "uint256",
-        "name": "SUSHI_amount",
+        "name": "QUICK_amount",
         "type": "uint256"
       },
       {
@@ -584,13 +598,6 @@ var bento_dapp_abi = [
       }
     ],
     "name": "swapIntoFourEqualParts",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "depositAllFourTokensBackToBento",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -635,62 +642,11 @@ var bento_dapp_abi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "token_address",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "address_from",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "address_to",
-        "type": "address"
-      }
-    ],
-    "name": "depositTokenBalanceToBento",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "user",
         "type": "address"
       }
     ],
     "name": "withdrawUserFunds",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_WMATIC_amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_SUSHI_amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_WETH_amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_WBTC_amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "withdrawAllFourTokensFromBento",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -705,11 +661,6 @@ var bento_dapp_abi = [
       {
         "internalType": "address",
         "name": "token_address",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "address_from",
         "type": "address"
       },
       {
@@ -747,50 +698,14 @@ var bento_dapp_abi = [
         "internalType": "address",
         "name": "_token",
         "type": "address"
-      }
-    ],
-    "name": "swapWholeBalanceBackToUSDC",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount_",
-        "type": "uint256"
-      }
-    ],
-    "name": "withdraw_matic",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "token_address",
-        "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "_share",
+        "name": "_amount",
         "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "address_from",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "address_to",
-        "type": "address"
       }
     ],
-    "name": "transfer",
+    "name": "swapBackToUSDC",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -808,7 +723,7 @@ var bento_dapp_abi = [
         "type": "address"
       }
     ],
-    "name": "BentoTokenBalanceOf",
+    "name": "tokenBalanceOf",
     "outputs": [
       {
         "internalType": "uint256",

@@ -13,26 +13,26 @@ contract autoBalancer is KeeperCompatibleInterface {
     address public constant USDC_ADDRESS = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
     
     address public constant WMATIC_ADDRESS = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
-    address public constant SUSHI_ADDRESS = 0x0b3F868E0BE5597D5DB7fEB59E1CADBb0fdDa50a;
+    address public constant QUICK_ADDRESS = 0xB5C064F955D8e7F38fE0460C556a72987494eE17;
     address public constant WETH_ADDRESS = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
     address public constant WBTC_ADDRESS = 0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6;
 
     address public constant MATIC_USD_ORACLE = 0xAB594600376Ec9fD91F8e885dADF0CE036862dE0;
     address public constant BTC_USD_ORACLE = 0xc907E116054Ad103354f2D350FD2514433D57F6f;
     address public constant ETH_USD_ORACLE = 0xF9680D99D6C9589e2a93a78A04A279e509205945;
-    address public constant SUSHI_USD_ORACLE = 0x49B0c695039243BBfEb8EcD054EB70061fd54aa0;
+    address public constant QUICK_USD_ORACLE = 0xa058689f4bCa95208bba3F265674AE95dED75B6D;
 
     address[] public USDCToWMATICPath = [USDC_ADDRESS, WMATIC_ADDRESS];
-    address[] public USDCToSUSHIPath = [USDC_ADDRESS, SUSHI_ADDRESS];
+    address[] public USDCToQUICKPath = [USDC_ADDRESS, QUICK_ADDRESS];
     address[] public USDCToWETHPath = [USDC_ADDRESS, WETH_ADDRESS];
     address[] public USDCToWBTCPath = [USDC_ADDRESS, WBTC_ADDRESS];
 
     address[] public WMATICToUSDCPath = [WMATIC_ADDRESS, USDC_ADDRESS];
-    address[] public SUSHIToUSDCPath = [SUSHI_ADDRESS, USDC_ADDRESS];
+    address[] public QUICKToUSDCPath = [QUICK_ADDRESS, USDC_ADDRESS];
     address[] public WETHToUSDCPath = [WETH_ADDRESS, USDC_ADDRESS];
     address[] public WBTCToUSDCPath = [WBTC_ADDRESS, USDC_ADDRESS];
 
-    address public constant SUSHISWAP_ROUTER = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
+    address public constant QUICKSWAP_ROUTER = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
     
     uint256 public totalNumberOfShares;
     uint256 public lastTimeStamp;
@@ -41,7 +41,7 @@ contract autoBalancer is KeeperCompatibleInterface {
 
     mapping(address => uint256) public userNumberOfShares; 
 
-    IUniswapV2Router02 public sushiSwapRouter = IUniswapV2Router02(SUSHISWAP_ROUTER);
+    IUniswapV2Router02 public quickSwapRouter = IUniswapV2Router02(QUICKSWAP_ROUTER);
 
     struct Coin {
         string symbol;
@@ -76,9 +76,9 @@ contract autoBalancer is KeeperCompatibleInterface {
         Coin memory wmatic;
         wmatic.tokenAddress = WMATIC_ADDRESS;
         wmatic.oracleAddress = MATIC_USD_ORACLE;
-        Coin memory sushi;
-        sushi.tokenAddress = SUSHI_ADDRESS;
-        sushi.oracleAddress = SUSHI_USD_ORACLE;
+        Coin memory quick;
+        quick.tokenAddress = QUICK_ADDRESS;
+        quick.oracleAddress = QUICK_USD_ORACLE;
         Coin memory wbtc;
         wbtc.tokenAddress = WBTC_ADDRESS;
         wbtc.oracleAddress = BTC_USD_ORACLE;
@@ -87,7 +87,7 @@ contract autoBalancer is KeeperCompatibleInterface {
         weth.oracleAddress = ETH_USD_ORACLE;
 
         array_coins[0] = wmatic;
-        array_coins[1] = sushi;
+        array_coins[1] = quick;
         array_coins[2] = wbtc;
         array_coins[3] = weth;
         
@@ -197,29 +197,31 @@ contract autoBalancer is KeeperCompatibleInterface {
             IERC20(token_address).approve(spender_address, amount_to_approve);
     }
     
-     receive() external payable {
+    receive() external payable {
     }
 
-    function depositUserFunds (uint256 amount_, address address_from) public  {
-        approve_spending(USDC_ADDRESS, SUSHISWAP_ROUTER, amount_);
+    function depositUserFunds (uint256 amount_) public  {
+        IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), amount_);
 
         uint256 WMATIC_balanceInUSD = getUSDTokenBalanceOf(WMATIC_ADDRESS, MATIC_USD_ORACLE, 18);
-        uint256 SUSHI_balanceInUSD = getUSDTokenBalanceOf(SUSHI_ADDRESS, SUSHI_USD_ORACLE, 18);
+        uint256 QUICK_balanceInUSD = getUSDTokenBalanceOf(QUICK_ADDRESS, QUICK_USD_ORACLE, 18);
         uint256 WETH_balanceInUSD = getUSDTokenBalanceOf(WETH_ADDRESS, ETH_USD_ORACLE, 18);
         uint256 WBTC_balanceInUSD = getUSDTokenBalanceOf(WBTC_ADDRESS, BTC_USD_ORACLE, 8);
 
-        uint256 Total_in_USD = WMATIC_balanceInUSD + SUSHI_balanceInUSD + WETH_balanceInUSD + WBTC_balanceInUSD;
+        uint256 Total_in_USD = WMATIC_balanceInUSD + QUICK_balanceInUSD + WETH_balanceInUSD + WBTC_balanceInUSD;
         
+        approve_spending(USDC_ADDRESS, QUICKSWAP_ROUTER, amount_);
+
         if (Total_in_USD > 0) {
-            swapProportionately(WMATIC_balanceInUSD, SUSHI_balanceInUSD, WETH_balanceInUSD, WBTC_balanceInUSD, Total_in_USD, amount_);
+            swapProportionately(WMATIC_balanceInUSD, QUICK_balanceInUSD, WETH_balanceInUSD, WBTC_balanceInUSD, Total_in_USD, amount_);
         } else {
             swapIntoFourEqualParts(amount_);
         }
         
         if (Total_in_USD > 0) {
-            updateSharesOnDeposit(address_from, Total_in_USD, amount_);
+            updateSharesOnDeposit(msg.sender, Total_in_USD, amount_);
         } else {
-            setSharesFirstTime(address_from);
+            setSharesFirstTime(msg.sender);
         }
     }
 
@@ -230,23 +232,23 @@ contract autoBalancer is KeeperCompatibleInterface {
          / (10**(token_decimals+2));
     }
 
-    function swapProportionately(uint256 WMATIC_amount, uint256 SUSHI_amount, uint256 WETH_amount, uint256 WBTC_amount, uint256 totalUSDAmount, uint256 depositAmount) public {
+    function swapProportionately(uint256 WMATIC_amount, uint256 QUICK_amount, uint256 WETH_amount, uint256 WBTC_amount, uint256 totalUSDAmount, uint256 depositAmount) public {
         uint256 WMATIC_share = WMATIC_amount * (depositAmount) / (totalUSDAmount); 
-        uint256 SUSHI_share = SUSHI_amount * (depositAmount) / (totalUSDAmount);
+        uint256 QUICK_share = QUICK_amount * (depositAmount) / (totalUSDAmount);
         uint256 WETH_share = WETH_amount * (depositAmount) / (totalUSDAmount);
         uint256 WBTC_share = WBTC_amount * (depositAmount) / (totalUSDAmount);
 
         swap(WMATIC_share, uint256(0), USDCToWMATICPath, address(this), 99999999999);
-        swap(SUSHI_share, uint256(0), USDCToSUSHIPath, address(this), 99999999999);
+        swap(QUICK_share, uint256(0), USDCToQUICKPath, address(this), 99999999999);
         swap(WETH_share, uint256(0), USDCToWETHPath, address(this), 99999999999);
         swap(WBTC_share, uint256(0), USDCToWBTCPath, address(this), 99999999999);
     }
 
     function swapIntoFourEqualParts(uint256 amount) public {
-        swap(amount / (4), uint256(0), USDCToWMATICPath, address(this), 99999999999);
-        swap(amount / (4), uint256(0), USDCToSUSHIPath, address(this), 99999999999);
-        swap(amount / (4), uint256(0), USDCToWETHPath, address(this), 99999999999);
-        swap(amount / (4), uint256(0), USDCToWBTCPath, address(this), 99999999999);
+        swap(amount / 4, uint256(0), USDCToWMATICPath, address(this), 99999999999);
+        swap(amount / 4, uint256(0), USDCToQUICKPath, address(this), 99999999999);
+        swap(amount / 4, uint256(0), USDCToWETHPath, address(this), 99999999999);
+        swap(amount / 4, uint256(0), USDCToWBTCPath, address(this), 99999999999);
     }
 
     function setSharesFirstTime(address user) public {
@@ -268,17 +270,17 @@ contract autoBalancer is KeeperCompatibleInterface {
         //do I need an approval here?
 
         uint256 WMATIC_amount = userNumberOfShares[user] * (tokenBalanceOf(WMATIC_ADDRESS, address(this))) / (totalNumberOfShares);
-        uint256 SUSHI_amount = userNumberOfShares[user] * (tokenBalanceOf(SUSHI_ADDRESS, address(this))) / (totalNumberOfShares);
+        uint256 QUICK_amount = userNumberOfShares[user] * (tokenBalanceOf(QUICK_ADDRESS, address(this))) / (totalNumberOfShares);
         uint256 WETH_amount = userNumberOfShares[user] * (tokenBalanceOf(WETH_ADDRESS, address(this))) / (totalNumberOfShares);
         uint256 WBTC_amount = userNumberOfShares[user] * (tokenBalanceOf(WBTC_ADDRESS, address(this))) / (totalNumberOfShares);
 
-        approve_spending(WMATIC_ADDRESS, SUSHISWAP_ROUTER, WMATIC_amount);
-        approve_spending(SUSHI_ADDRESS, SUSHISWAP_ROUTER, SUSHI_amount);
-        approve_spending(WETH_ADDRESS, SUSHISWAP_ROUTER, WETH_amount);
-        approve_spending(WBTC_ADDRESS, SUSHISWAP_ROUTER, WBTC_amount);
+        approve_spending(WMATIC_ADDRESS, QUICKSWAP_ROUTER, WMATIC_amount);
+        approve_spending(QUICK_ADDRESS, QUICKSWAP_ROUTER, QUICK_amount);
+        approve_spending(WETH_ADDRESS, QUICKSWAP_ROUTER, WETH_amount);
+        approve_spending(WBTC_ADDRESS, QUICKSWAP_ROUTER, WBTC_amount);
 
         swapBackToUSDC(WMATIC_ADDRESS, WMATIC_amount);
-        swapBackToUSDC(SUSHI_ADDRESS, SUSHI_amount);
+        swapBackToUSDC(QUICK_ADDRESS, QUICK_amount);
         swapBackToUSDC(WETH_ADDRESS, WETH_amount);
         swapBackToUSDC(WBTC_ADDRESS, WBTC_amount);
 
@@ -320,99 +322,13 @@ contract autoBalancer is KeeperCompatibleInterface {
     
     function swap(uint256 _amountIn, uint256 _amountOutMin, address[] memory _path, address _acct, uint256 _deadline) public {
         
-       sushiSwapRouter.swapExactTokensForTokens(
+       quickSwapRouter.swapExactTokensForTokens(
             _amountIn,
             _amountOutMin,
             _path,
             _acct,
             _deadline);
         }
-
-
-    // function rebalance() public {
-        
-
-        // coinArray
-
-
-
-        // somehow need to sort the four elements of the array by this one dimension (diff_from_average)
-        // _array_coins.sort((a, b) => { 
-        //     return b.diff_from_average - a.diff_from_average;
-
-        // var swapInputs = getSwapInputs(array_coins); //this quite a big piece of logic as well I think
-        // var token_to_be_swapped_address = swapInputs[2][0];
-        // var amount_to_be_swapped = swapInputs[0];
-
-//                 var isApprovedForAmount = await checkIfApprovedForAmount(token_to_be_swapped_address, amount_to_be_swapped);
-//                 var tokenToBeSwappedContract = new ethers.Contract(token_to_be_swapped_address, token_abi, signer);
-
-//                 if (isApprovedForAmount) {
-//                     console.log("token already approved");
-//                     confirmAndExecuteSwapAndUpdateArrayAndDoNextSwap(amount_to_be_swapped, swapInputs, array_coins, tokenToBeSwappedContract)
-//                         if (window.confirm("Confirm Swap")) {
-//                         await executeDappSwap(_amount_to_be_swapped, _swapInputs[1], _swapInputs[2], BENTOBOX_BALANCER_DAPP_ADDRESS, Date.now() + 1111111111111);
-
-//                         updateArray(_array_coins);
-//                         if (_array_coins.length > 1) {
-//                         executeNextSwapOnceLastOneConfirms(_tokenToBeSwappedContract, _array_coins);
-//                             if (window.confirm("Swap Completed? Ready for next one?")) {
-//                             // console.log(`${from} sent ${amount} to ${to}`);
-//                             await balanceAndRemoveOneCoin(_array_coins);
-//     }
-//   }
-//                 }
-
-//                 else {
-//                     console.log("token not already approved");
-
-//                     askUserForApproval(token_to_be_swapped_address, amount_to_be_swapped);
-//                     //create a listener for the approval confirmation
-//                     var filterForApprovalEvent = tokenToBeSwappedContract.filters.Approval(BENTOBOX_BALANCER_DAPP_ADDRESS, null);
-//                     tokenToBeSwappedContract.once(filterForApprovalEvent, async (owner, spender, value, event) => {
-//                     console.log('Tokens approved');
-//                     confirmAndExecuteSwapAndUpdateArrayAndDoNextSwap(amount_to_be_swapped, swapInputs, array_coins, tokenToBeSwappedContract)
-//                         if (window.confirm("Confirm Swap")) {
-//                         await executeDappSwap(_amount_to_be_swapped, _swapInputs[1], _swapInputs[2], BENTOBOX_BALANCER_DAPP_ADDRESS, Date.now() + 1111111111111);
-
-//                         updateArray(_array_coins);
-//                         if (_array_coins.length > 1) {
-//                         executeNextSwapOnceLastOneConfirms(_tokenToBeSwappedContract, _array_coins);
-//                             if (window.confirm("Swap Completed? Ready for next one?")) {
-//                             // console.log(`${from} sent ${amount} to ${to}`);
-//                             await balanceAndRemoveOneCoin(_array_coins);
-//   }
-//                     })
-//                 }
-//                 }
-            
-    // })
-        
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    //     uint256 WMATIC_amount = tokenBalanceOf(WMATIC_ADDRESS, address(this));
-    //     uint256 SUSHI_amount = tokenBalanceOf(SUSHI_ADDRESS, address(this));
-    //     uint256 WETH_amount = tokenBalanceOf(WETH_ADDRESS, address(this));
-    //     uint256 WBTC_amount = tokenBalanceOf(WBTC_ADDRESS, address(this));
-
-    //     withdrawAllFourTokensFromBento(WMATIC_amount, SUSHI_amount, WETH_amount, WBTC_amount);
-    //     }
-
-    // function rebalanceThree() public {
-    //     depositAllFourTokensBackToBento();
-    //     }
         
     }
     
