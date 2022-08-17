@@ -1,7 +1,7 @@
 const AUTO_BALANCER_DAPP_ADDRESS = "0x9c878A6271316880ec2325E6d745e42b8FffFEa6" //"0x52B8634260b461Ce27b73fC1BA29924bB51AA28d"; //insert the address I deployed to
 
 const WMATIC_ADDRESS = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
-const QUICK_ADDRESS = "0xB5C064F955D8e7F38fE0460C556a72987494eE17"
+const LINK_ADDRESS = "0xb0897686c545045aFc77CF20eC7A532E3120E0F1"
 const WETH_ADDRESS = "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619"
 const WBTC_ADDRESS = "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6"
 const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
@@ -9,7 +9,7 @@ const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
 const QUICKSWAP_ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
 
 const MATIC_USD_ORACLE = "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0"
-const QUICK_USD_ORACLE = "0xa058689f4bCa95208bba3F265674AE95dED75B6D"
+const LINK_USD_ORACLE = "0xd9FFdb71EbE7496cC440152d43986Aae0AB76665"
 const ETH_USD_ORACLE = "0xF9680D99D6C9589e2a93a78A04A279e509205945"
 const BTC_USD_ORACLE = "0xc907E116054Ad103354f2D350FD2514433D57F6f"
 
@@ -103,7 +103,7 @@ async function startApp(provider) {
 async function displayBalances() {
   getWMATICResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(WMATIC_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
 
-  getQUICKResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(QUICK_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
+  getLINKResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(LINK_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 18)).toFixed(6) || 'Not able to get accounts';
 
   getWBTCResult.innerHTML = parseFloat(ethers.utils.formatUnits(await getBalance(WBTC_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS), 8)).toFixed(6) || 'Not able to get accounts';
 
@@ -114,14 +114,14 @@ async function displayUSDBalances() {
   var array_coins = await getTokenInfo(AUTO_BALANCER_DAPP_ADDRESS);
   var wmatic_usd = array_coins[0].usd_balance;
   WMATICInUsd.innerHTML = wmatic_usd.toFixed(2) || 'Not able to get accounts'; //8 decimals for oracle input, 18 for WMATIC
-  var quick_usd = array_coins[1].usd_balance;
-  QUICKInUsd.innerHTML = quick_usd.toFixed(2) || 'Not able to get accounts';
+  var link_usd = array_coins[1].usd_balance;
+  LINKInUsd.innerHTML = link_usd.toFixed(2) || 'Not able to get accounts';
   var wbtc_usd = array_coins[2].usd_balance;
   WBTCInUsd.innerHTML = wbtc_usd.toFixed(2) || 'Not able to get accounts';
   var weth_usd = array_coins[3].usd_balance;
   WETHInUsd.innerHTML = weth_usd.toFixed(2) || 'Not able to get accounts';
 
-  var total_in_usd = wmatic_usd + quick_usd + wbtc_usd + weth_usd;
+  var total_in_usd = wmatic_usd + link_usd + wbtc_usd + weth_usd;
   TotalInUSD.innerHTML = '$ ' + total_in_usd.toFixed(2);
   var userShares = (await dappContract_provider.getUserShares(user)).toNumber()
   var totalShares = (await dappContract_provider.totalNumberOfShares()).toNumber() //lesson here - overwriting public variable getter function??
@@ -145,11 +145,11 @@ async function getTokenInfo(accountOrContract) {
 
   //create a coin object for each of our 4 assets
   var WMATIC = new Coin("WMATIC", WMATIC_ADDRESS, MATIC_USD_ORACLE);
-  var QUICK = new Coin("QUICK", QUICK_ADDRESS, QUICK_USD_ORACLE);
+  var LINK = new Coin("LINK", LINK_ADDRESS, LINK_USD_ORACLE);
   var WBTC = new Coin("WBTC", WBTC_ADDRESS, BTC_USD_ORACLE);
   var WETH = new Coin("WETH", WETH_ADDRESS, ETH_USD_ORACLE);
 
-  var array_coins = [WMATIC, QUICK, WBTC, WETH];
+  var array_coins = [WMATIC, LINK, WBTC, WETH];
   var total_in_usd = 0;
 
   for (let coin of array_coins) {

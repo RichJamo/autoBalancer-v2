@@ -13,22 +13,22 @@ contract autoBalancer is KeeperCompatibleInterface {
     address public constant USDC_ADDRESS = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
     
     address public constant WMATIC_ADDRESS = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
-    address public constant QUICK_ADDRESS = 0xB5C064F955D8e7F38fE0460C556a72987494eE17;
+    address public constant LINK_ADDRESS = 0xb0897686c545045aFc77CF20eC7A532E3120E0F1;
     address public constant WETH_ADDRESS = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
     address public constant WBTC_ADDRESS = 0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6;
 
     address public constant MATIC_USD_ORACLE = 0xAB594600376Ec9fD91F8e885dADF0CE036862dE0;
     address public constant BTC_USD_ORACLE = 0xc907E116054Ad103354f2D350FD2514433D57F6f;
     address public constant ETH_USD_ORACLE = 0xF9680D99D6C9589e2a93a78A04A279e509205945;
-    address public constant QUICK_USD_ORACLE = 0xa058689f4bCa95208bba3F265674AE95dED75B6D;
+    address public constant LINK_USD_ORACLE = 0xd9FFdb71EbE7496cC440152d43986Aae0AB76665;
 
     address[] public USDCToWMATICPath = [USDC_ADDRESS, WMATIC_ADDRESS];
-    address[] public USDCToQUICKPath = [USDC_ADDRESS, QUICK_ADDRESS];
+    address[] public USDCToLINKPath = [USDC_ADDRESS, LINK_ADDRESS];
     address[] public USDCToWETHPath = [USDC_ADDRESS, WETH_ADDRESS];
     address[] public USDCToWBTCPath = [USDC_ADDRESS, WBTC_ADDRESS];
 
     address[] public WMATICToUSDCPath = [WMATIC_ADDRESS, USDC_ADDRESS];
-    address[] public QUICKToUSDCPath = [QUICK_ADDRESS, USDC_ADDRESS];
+    address[] public LINKToUSDCPath = [LINK_ADDRESS, USDC_ADDRESS];
     address[] public WETHToUSDCPath = [WETH_ADDRESS, USDC_ADDRESS];
     address[] public WBTCToUSDCPath = [WBTC_ADDRESS, USDC_ADDRESS];
 
@@ -76,9 +76,9 @@ contract autoBalancer is KeeperCompatibleInterface {
         Coin memory wmatic;
         wmatic.tokenAddress = WMATIC_ADDRESS;
         wmatic.oracleAddress = MATIC_USD_ORACLE;
-        Coin memory quick;
-        quick.tokenAddress = QUICK_ADDRESS;
-        quick.oracleAddress = QUICK_USD_ORACLE;
+        Coin memory link;
+        link.tokenAddress = LINK_ADDRESS;
+        link.oracleAddress = LINK_USD_ORACLE;
         Coin memory wbtc;
         wbtc.tokenAddress = WBTC_ADDRESS;
         wbtc.oracleAddress = BTC_USD_ORACLE;
@@ -87,7 +87,7 @@ contract autoBalancer is KeeperCompatibleInterface {
         weth.oracleAddress = ETH_USD_ORACLE;
 
         array_coins[0] = wmatic;
-        array_coins[1] = quick;
+        array_coins[1] = link;
         array_coins[2] = wbtc;
         array_coins[3] = weth;
         
@@ -132,8 +132,10 @@ contract autoBalancer is KeeperCompatibleInterface {
         int256 amount1;
         if (array_coins[maxCoin_index].diff_from_average > abs(array_coins[minCoin_index].diff_from_average)) {
             amount1 = abs(array_coins[minCoin_index].diff_from_average);
+            amount1 = amount1 * (10 ** 8) / array_coins[minCoin_index].usd_exchange_rate;
         } else {
             amount1 = array_coins[maxCoin_index].diff_from_average;
+            amount1 = amount1 * (10 ** 8) / array_coins[maxCoin_index].usd_exchange_rate;
         }
 
         performData = abi.encode(path1, amount1); //, path2, amount2, path3, amount3
@@ -204,16 +206,16 @@ contract autoBalancer is KeeperCompatibleInterface {
         IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), amount_);
 
         uint256 WMATIC_balanceInUSD = getUSDTokenBalanceOf(WMATIC_ADDRESS, MATIC_USD_ORACLE, 18);
-        uint256 QUICK_balanceInUSD = getUSDTokenBalanceOf(QUICK_ADDRESS, QUICK_USD_ORACLE, 18);
+        uint256 LINK_balanceInUSD = getUSDTokenBalanceOf(LINK_ADDRESS, LINK_USD_ORACLE, 18);
         uint256 WETH_balanceInUSD = getUSDTokenBalanceOf(WETH_ADDRESS, ETH_USD_ORACLE, 18);
         uint256 WBTC_balanceInUSD = getUSDTokenBalanceOf(WBTC_ADDRESS, BTC_USD_ORACLE, 8);
 
-        uint256 Total_in_USD = WMATIC_balanceInUSD + QUICK_balanceInUSD + WETH_balanceInUSD + WBTC_balanceInUSD;
+        uint256 Total_in_USD = WMATIC_balanceInUSD + LINK_balanceInUSD + WETH_balanceInUSD + WBTC_balanceInUSD;
         
         approve_spending(USDC_ADDRESS, QUICKSWAP_ROUTER, amount_);
 
         if (Total_in_USD > 0) {
-            swapProportionately(WMATIC_balanceInUSD, QUICK_balanceInUSD, WETH_balanceInUSD, WBTC_balanceInUSD, Total_in_USD, amount_);
+            swapProportionately(WMATIC_balanceInUSD, LINK_balanceInUSD, WETH_balanceInUSD, WBTC_balanceInUSD, Total_in_USD, amount_);
         } else {
             swapIntoFourEqualParts(amount_);
         }
@@ -232,21 +234,21 @@ contract autoBalancer is KeeperCompatibleInterface {
          / (10**(token_decimals+2));
     }
 
-    function swapProportionately(uint256 WMATIC_amount, uint256 QUICK_amount, uint256 WETH_amount, uint256 WBTC_amount, uint256 totalUSDAmount, uint256 depositAmount) public {
+    function swapProportionately(uint256 WMATIC_amount, uint256 LINK_amount, uint256 WETH_amount, uint256 WBTC_amount, uint256 totalUSDAmount, uint256 depositAmount) public {
         uint256 WMATIC_share = WMATIC_amount * (depositAmount) / (totalUSDAmount); 
-        uint256 QUICK_share = QUICK_amount * (depositAmount) / (totalUSDAmount);
+        uint256 LINK_share = LINK_amount * (depositAmount) / (totalUSDAmount);
         uint256 WETH_share = WETH_amount * (depositAmount) / (totalUSDAmount);
         uint256 WBTC_share = WBTC_amount * (depositAmount) / (totalUSDAmount);
 
         swap(WMATIC_share, uint256(0), USDCToWMATICPath, address(this), 99999999999);
-        swap(QUICK_share, uint256(0), USDCToQUICKPath, address(this), 99999999999);
+        swap(LINK_share, uint256(0), USDCToLINKPath, address(this), 99999999999);
         swap(WETH_share, uint256(0), USDCToWETHPath, address(this), 99999999999);
         swap(WBTC_share, uint256(0), USDCToWBTCPath, address(this), 99999999999);
     }
 
     function swapIntoFourEqualParts(uint256 amount) public {
         swap(amount / 4, uint256(0), USDCToWMATICPath, address(this), 99999999999);
-        swap(amount / 4, uint256(0), USDCToQUICKPath, address(this), 99999999999);
+        swap(amount / 4, uint256(0), USDCToLINKPath, address(this), 99999999999);
         swap(amount / 4, uint256(0), USDCToWETHPath, address(this), 99999999999);
         swap(amount / 4, uint256(0), USDCToWBTCPath, address(this), 99999999999);
     }
@@ -270,17 +272,17 @@ contract autoBalancer is KeeperCompatibleInterface {
         //do I need an approval here?
 
         uint256 WMATIC_amount = userNumberOfShares[user] * (tokenBalanceOf(WMATIC_ADDRESS, address(this))) / (totalNumberOfShares);
-        uint256 QUICK_amount = userNumberOfShares[user] * (tokenBalanceOf(QUICK_ADDRESS, address(this))) / (totalNumberOfShares);
+        uint256 LINK_amount = userNumberOfShares[user] * (tokenBalanceOf(LINK_ADDRESS, address(this))) / (totalNumberOfShares);
         uint256 WETH_amount = userNumberOfShares[user] * (tokenBalanceOf(WETH_ADDRESS, address(this))) / (totalNumberOfShares);
         uint256 WBTC_amount = userNumberOfShares[user] * (tokenBalanceOf(WBTC_ADDRESS, address(this))) / (totalNumberOfShares);
 
         approve_spending(WMATIC_ADDRESS, QUICKSWAP_ROUTER, WMATIC_amount);
-        approve_spending(QUICK_ADDRESS, QUICKSWAP_ROUTER, QUICK_amount);
+        approve_spending(LINK_ADDRESS, QUICKSWAP_ROUTER, LINK_amount);
         approve_spending(WETH_ADDRESS, QUICKSWAP_ROUTER, WETH_amount);
         approve_spending(WBTC_ADDRESS, QUICKSWAP_ROUTER, WBTC_amount);
 
         swapBackToUSDC(WMATIC_ADDRESS, WMATIC_amount);
-        swapBackToUSDC(QUICK_ADDRESS, QUICK_amount);
+        swapBackToUSDC(LINK_ADDRESS, LINK_amount);
         swapBackToUSDC(WETH_ADDRESS, WETH_amount);
         swapBackToUSDC(WBTC_ADDRESS, WBTC_amount);
 
