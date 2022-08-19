@@ -1,4 +1,4 @@
-const AUTO_BALANCER_DAPP_ADDRESS = "0x43d0f4eEf35Cd60F225A177E50B76C9A635A5028" //"0x52B8634260b461Ce27b73fC1BA29924bB51AA28d"; //insert the address I deployed to
+const AUTO_BALANCER_DAPP_ADDRESS = "0xF2Ec6aBe2Ee204485F63027566ac5193E0C6aa4d" //"0x52B8634260b461Ce27b73fC1BA29924bB51AA28d"; //insert the address I deployed to
 
 const WMATIC_ADDRESS = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
 const SAND_ADDRESS = "0xBbba073C31bF03b8ACf7c28EF0738DeCF3695683"
@@ -156,7 +156,7 @@ async function getTokenInfo(accountOrContract) {
     coin.balance = await getBalance(coin.address, accountOrContract);
     console.log(coin.balance.toString())
     coin.usd_exchange_rate = await getExchangeRate(coin.oracleAddress);
-    console.log(coin.usd_exchange_rate.toString ())
+    console.log(coin.usd_exchange_rate.toString())
 
     coin.decimals = await getDecimals(coin.address);
     console.log(coin.decimals)
