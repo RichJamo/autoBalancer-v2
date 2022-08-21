@@ -68,6 +68,7 @@ async function checkNetworkId(_provider) {
 }
 
 async function startApp(provider) {
+  const connectButton = document.getElementById('connectButton');
   const depositButton = document.getElementById('depositButton');
   const approveButton = document.getElementById('approveButton');
 
@@ -78,6 +79,10 @@ async function startApp(provider) {
   console.log(user)
   await displayBalances();
   await displayUSDBalances();
+
+  connectButton.addEventListener('click', async () => {
+    // await connect;
+  })
 
   approveButton.addEventListener('click', async () => {
     var depositAmountUSDC = $("#depositAmountUSDC").val(); //put in some checks here? positive number, between x and y, user has enough funds...
