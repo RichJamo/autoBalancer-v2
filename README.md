@@ -1,4 +1,4 @@
-# AutoBalancer BEMQ Index
+# AutoBalancer BEMS Index
 BTC, ETH, MATIC and SAND in an equally weighted, periodically rebalanced index.
 Deposit USDC to participate in the index. Withdraw anytime, also in USDC. Fee of 0.3% on deposit (TBC).
 Index is 100% composed of the four crypto assets (wrapped versions of MATIC, ETH and BTC).
