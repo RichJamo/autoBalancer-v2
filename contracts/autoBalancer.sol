@@ -96,7 +96,7 @@ contract autoBalancer is KeeperCompatibleInterface {
         returns (bool upkeepNeeded, bytes memory performData)
     {
         upkeepNeeded = (block.timestamp - lastTimeStamp) > interval;
-
+        //we create the coin array and coin objects
         Coin[] memory array_coins = new Coin[](4);
 
         Coin memory wmatic;
@@ -118,9 +118,8 @@ contract autoBalancer is KeeperCompatibleInterface {
         array_coins[3] = weth;
 
         int256 total_in_usd = 0;
-        int256 no_of_assets = int256(array_coins.length);
 
-        for (uint256 i = 0; i < array_coins.length; i++) {
+        for (uint8 i = 0; i < array_coins.length; i++) {
             IERC20 coin_instance = IERC20(array_coins[i].tokenAddress);
             array_coins[i].balance = int256(
                 coin_instance.balanceOf(address(this))
@@ -135,65 +134,70 @@ contract autoBalancer is KeeperCompatibleInterface {
             total_in_usd += array_coins[i].usd_balance;
         }
 
-        int256 target_per_asset = total_in_usd / no_of_assets;
-
-        for (uint256 i = 0; i < array_coins.length; i++) {
+        for (uint8 i = 0; i < array_coins.length; i++) {
             array_coins[i].diff_from_average =
                 array_coins[i].usd_balance -
-                target_per_asset;
+                (total_in_usd / int256(array_coins.length));
         }
 
-        // Coin memory max_coin = find_max(array_coins);
         int256 comparison_variable; // default 0, the lowest value of `uint256`
         uint8 maxCoin_index;
-        for (uint8 i = 0; i < array_coins.length; i++) {
-            if (array_coins[i].diff_from_average > comparison_variable) {
-                maxCoin_index = i;
-                comparison_variable = array_coins[i].diff_from_average;
-            }
-        }
-        // Coin memory min_coin = find_min(array_coins);
-        comparison_variable = type(int256).max; // the highest value of int256
         uint8 minCoin_index;
-        for (uint8 i = 0; i < array_coins.length; i++) {
-            if (array_coins[i].diff_from_average < comparison_variable) {
-                minCoin_index = i;
-                comparison_variable = array_coins[i].diff_from_average;
+        int256[] memory amounts = new int256[](array_coins.length - 1);
+        address[] memory paths = new address[](2 * (array_coins.length - 1)); //this will take all n-1 paths eventually
+
+        for (uint8 j = 0; j < array_coins.length - 1; j++) {
+            // Coin memory max_coin = find_max(array_coins);
+            for (uint8 i = 0; i < array_coins.length; i++) {
+                if (
+                    array_coins[i].diff_from_average != 0 &&
+                    array_coins[i].diff_from_average > comparison_variable
+                ) {
+                    maxCoin_index = i;
+                    comparison_variable = array_coins[i].diff_from_average;
+                }
             }
+            // Coin memory min_coin = find_min(array_coins);
+            comparison_variable = type(int256).max; // the highest value of int256
+            for (uint8 i = 0; i < array_coins.length; i++) {
+                if (
+                    array_coins[i].diff_from_average != 0 &&
+                    array_coins[i].diff_from_average < comparison_variable
+                ) {
+                    minCoin_index = i;
+                    comparison_variable = array_coins[i].diff_from_average;
+                }
+            }
+            // we calculate the amount to be swapped, depending on which coin is further from average
+            if (
+                array_coins[maxCoin_index].diff_from_average >
+                abs(array_coins[minCoin_index].diff_from_average) //maxCoin is further from average than minCoin
+            ) {
+                // so the amount we swap is minCoin's diff_from_average
+                amounts[j] = abs(array_coins[minCoin_index].diff_from_average);
+                // so we decrease maxCoin's average by that amount
+                array_coins[maxCoin_index].diff_from_average -= amounts[j];
+                // and set minCoin's diff to zero, so that it will be excluded from future loops
+                array_coins[minCoin_index].diff_from_average = 0;
+                // then we convert amounts[j] from usd to maxCoin currency (because we're always swapping from maxCoin)
+                amounts[j] =
+                    (amounts[j] * (10**8)) /
+                    array_coins[maxCoin_index].usd_exchange_rate;
+            } else {
+                amounts[j] = array_coins[maxCoin_index].diff_from_average;
+                array_coins[minCoin_index].diff_from_average -= amounts[j];
+                array_coins[maxCoin_index].diff_from_average = 0;
+                amounts[j] =
+                    (amounts[j] * (10**8)) /
+                    array_coins[maxCoin_index].usd_exchange_rate;
+            }
+
+            //we determine the paths that the swap will take (beginning and end)
+            paths[2 * j] = array_coins[maxCoin_index].tokenAddress;
+            paths[2 * j + 1] = array_coins[minCoin_index].tokenAddress;
         }
 
-        int256 amount1;
-        if (
-            array_coins[maxCoin_index].diff_from_average >
-            abs(array_coins[minCoin_index].diff_from_average)
-        ) {
-            amount1 = abs(array_coins[minCoin_index].diff_from_average);
-            amount1 =
-                (amount1 * (10**8)) /
-                array_coins[minCoin_index].usd_exchange_rate;
-        } else {
-            amount1 = array_coins[maxCoin_index].diff_from_average;
-            amount1 =
-                (amount1 * (10**8)) /
-                array_coins[maxCoin_index].usd_exchange_rate;
-        }
-
-        address[] memory path_short = new address[](2);
-        address[] memory path_long = new address[](3);
-
-        if (
-            array_coins[maxCoin_index].tokenAddress == WMATIC_ADDRESS ||
-            array_coins[minCoin_index].tokenAddress == WMATIC_ADDRESS
-        ) {
-            path_short[0] = array_coins[maxCoin_index].tokenAddress;
-            path_short[1] = array_coins[minCoin_index].tokenAddress;
-            performData = abi.encode(path_short, amount1); //, path2, amount2, path3, amount3
-        } else {
-            path_long[0] = array_coins[maxCoin_index].tokenAddress;
-            path_long[1] = WMATIC_ADDRESS;
-            path_long[2] = array_coins[minCoin_index].tokenAddress;
-            performData = abi.encode(path_long, amount1); //, path2, amount2, path3, amount3
-        }
+        performData = abi.encode(paths, amounts);
         // We don't use the checkData in this example. The checkData is defined when the Upkeep was registered.
         return (upkeepNeeded, performData);
     }
@@ -202,12 +206,40 @@ contract autoBalancer is KeeperCompatibleInterface {
         //We highly recommend revalidating the upkeep in the performUpkeep function
         if ((block.timestamp - lastTimeStamp) > interval) {
             lastTimeStamp = block.timestamp;
-            // this is where I actually do the rebalance on chain
-            address[] memory path1;
-            uint256 amount1;
-            (path1, amount1) = abi.decode(performData, (address[], uint256)); //, path2, amount2, path3, amount3
-            approve_spending(path1[0], QUICKSWAP_ROUTER, amount1);
-            swap(amount1, uint256(0), path1, address(this), 99999999999);
+            address[] memory paths;
+            uint256[] memory amounts;
+            address[] memory path_short = new address[](2);
+            address[] memory path_long = new address[](3);
+
+            (paths, amounts) = abi.decode(performData, (address[], uint256[]));
+            for (uint8 i = 0; i < amounts.length; i++) {
+                approve_spending(paths[2 * i], QUICKSWAP_ROUTER, amounts[i]);
+                if (
+                    paths[2 * i] == WMATIC_ADDRESS ||
+                    paths[2 * i + 1] == WMATIC_ADDRESS
+                ) {
+                    path_short[0] = paths[2 * i];
+                    path_short[1] = paths[2 * i + 1];
+                    swap(
+                        amounts[i],
+                        uint256(0),
+                        path_short,
+                        address(this),
+                        99999999999
+                    );
+                } else {
+                    path_long[0] = paths[2 * i];
+                    path_long[1] = WMATIC_ADDRESS;
+                    path_long[2] = paths[2 * i + 1];
+                    swap(
+                        amounts[i],
+                        uint256(0),
+                        path_long,
+                        address(this),
+                        99999999999
+                    );
+                }
+            }
         }
         // The performData is generated by the Keeper's call to your checkUpkeep function
     }
