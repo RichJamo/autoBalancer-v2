@@ -182,14 +182,25 @@ contract autoBalancer is KeeperCompatibleInterface {
                 array_coins[minCoin_index].diff_from_average = 0;
                 // then we convert amounts[j] from usd to maxCoin currency (because we're always swapping from maxCoin)
                 amounts[j] =
-                    (amounts[j] * (10**8)) /
+                    (amounts[j] *
+                        int256(
+                            10 **
+                                (uint256(array_coins[maxCoin_index].decimals) -
+                                    10)
+                        )) /
                     int256(array_coins[maxCoin_index].usd_exchange_rate);
             } else {
                 amounts[j] = abs(array_coins[maxCoin_index].diff_from_average);
                 array_coins[minCoin_index].diff_from_average += amounts[j];
                 array_coins[maxCoin_index].diff_from_average = 0;
+
                 amounts[j] =
-                    (amounts[j] * (10**8)) /
+                    (amounts[j] *
+                        int256(
+                            10 **
+                                (uint256(array_coins[maxCoin_index].decimals) -
+                                    10)
+                        )) /
                     int256(array_coins[maxCoin_index].usd_exchange_rate);
             }
 
