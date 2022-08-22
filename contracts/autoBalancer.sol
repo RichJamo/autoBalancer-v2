@@ -58,11 +58,11 @@ contract autoBalancer is KeeperCompatibleInterface {
         string symbol;
         address tokenAddress;
         address oracleAddress;
-        // uint256 decimals;
-        int256 balance;
-        int256 usd_balance;
+        uint256 decimals;
+        uint256 balance;
+        uint256 usd_balance;
         int256 diff_from_average;
-        int256 usd_exchange_rate;
+        uint256 usd_exchange_rate;
     }
 
     function setInterval(uint256 new_interval) public {
@@ -117,27 +117,28 @@ contract autoBalancer is KeeperCompatibleInterface {
         array_coins[2] = wbtc;
         array_coins[3] = weth;
 
-        int256 total_in_usd = 0;
+        uint256 total_in_usd = 0;
 
         for (uint8 i = 0; i < array_coins.length; i++) {
             IERC20 coin_instance = IERC20(array_coins[i].tokenAddress);
-            array_coins[i].balance = int256(
-                coin_instance.balanceOf(address(this))
+            array_coins[i].balance = coin_instance.balanceOf(address(this));
+            array_coins[i].usd_exchange_rate = uint256(
+                getLatestPrice(array_coins[i].oracleAddress)
             );
-            array_coins[i].usd_exchange_rate = getLatestPrice(
-                array_coins[i].oracleAddress
-            );
-            // array_coins[i].decimals = getDecimals(array_coins[i].address);
+            array_coins[i].decimals = uint256(coin_instance.decimals());
+            uint256 decimal_conversion = 18 - array_coins[i].decimals;
             array_coins[i].usd_balance =
-                (array_coins[i].balance * array_coins[i].usd_exchange_rate) /
-                (10**8); //do I need to reintroduce decimals here?
+                (uint256(
+                    array_coins[i].balance * array_coins[i].usd_exchange_rate
+                ) * (10**decimal_conversion)) /
+                (10**8);
             total_in_usd += array_coins[i].usd_balance;
         }
 
         for (uint8 i = 0; i < array_coins.length; i++) {
             array_coins[i].diff_from_average =
-                array_coins[i].usd_balance -
-                (total_in_usd / int256(array_coins.length));
+                int256(array_coins[i].usd_balance) -
+                int256(total_in_usd / (array_coins.length));
         }
 
         int256 comparison_variable; // default 0, the lowest value of `uint256`
@@ -182,14 +183,14 @@ contract autoBalancer is KeeperCompatibleInterface {
                 // then we convert amounts[j] from usd to maxCoin currency (because we're always swapping from maxCoin)
                 amounts[j] =
                     (amounts[j] * (10**8)) /
-                    array_coins[maxCoin_index].usd_exchange_rate;
+                    int256(array_coins[maxCoin_index].usd_exchange_rate);
             } else {
-                amounts[j] = array_coins[maxCoin_index].diff_from_average;
+                amounts[j] = abs(array_coins[maxCoin_index].diff_from_average);
                 array_coins[minCoin_index].diff_from_average -= amounts[j];
                 array_coins[maxCoin_index].diff_from_average = 0;
                 amounts[j] =
                     (amounts[j] * (10**8)) /
-                    array_coins[maxCoin_index].usd_exchange_rate;
+                    int256(array_coins[maxCoin_index].usd_exchange_rate);
             }
 
             //we determine the paths that the swap will take (beginning and end)
