@@ -5,8 +5,9 @@ Index is 100% composed of the four crypto assets (wrapped versions of MATIC, ETH
 Ensure that you have metamask installed and that you are using the Polygon Mainnet.
 Please note that this dapp is still under development, exercise caution.
 
-Main contract: autoBalancer.sol
-Main js file: app.js
+Main contract: **autoBalancer.sol**
+
+Main js file: **app.js**
 
 The smart contract makes use of Quickswap DEX for swaps, of Chainlink price oracles for USD prices of the four tokens, and Chainlink keepers to automate the rebalancing process. User shares are kept track of via a mapping in the smart contract.
 
