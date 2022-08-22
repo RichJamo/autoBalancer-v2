@@ -50,6 +50,8 @@ if (chainId !== 137) {
     // handle other "switch" errors
   }
 }
+let accounts = await ethereum.request({ method: 'eth_accounts' });
+console.log(accounts)
 
 if (provider) {
   startApp(provider); // Initialize your app
@@ -73,35 +75,84 @@ async function startApp(provider) {
   const approveButton = document.getElementById('approveButton');
 
   const withdrawToUserButton = document.getElementById('withdraw_BB_to_user');
+  await walletButtonStateHandler();
 
-  const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-  user = accounts[0];
-  console.log(user)
   await displayBalances();
   await displayUSDBalances();
 
-  connectButton.addEventListener('click', async () => {
-    // await connect;
-  })
+  async function walletButtonStateHandler() {
+    if (accounts.length > 0) {
+      user = accounts[0];
+      connectButton.classList.add("btn-success");
+      connectButton.innerHTML = user;
+      connectButton.disabled = true;
+    } else {
+      connectButton.classList.remove("btn-danger");
+      connectButton.innerHTML = "Connect Wallet";
+    }
+  }
+
+  connectButton.addEventListener('click', async (event) => {
+    connectButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span>  Connecting ...`;
+    try {
+      await ethereum.request({ method: "eth_requestAccounts" });
+    } catch (error) {
+    }
+    accounts = await ethereum.request({
+      method: "eth_accounts",
+    });
+    await walletButtonStateHandler();
+    await displayUSDBalances();
+
+  });
+
 
   approveButton.addEventListener('click', async () => {
     var depositAmountUSDC = $("#depositAmountUSDC").val(); //put in some checks here? positive number, between x and y, user has enough funds...
-    await giveApprovalFromUser(USDC_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS, ethers.utils.parseUnits(depositAmountUSDC.toString(), 6));
+    let tx = await giveApprovalFromUser(USDC_ADDRESS, AUTO_BALANCER_DAPP_ADDRESS, ethers.utils.parseUnits(depositAmountUSDC.toString(), 6));
+    let result = await tx.wait();
+    if (result) {
+      $("#swapStarted").css("display", "inline-block");
+      $("#swapStarted").text(`Deposit approved`);
+      setTimeout(function () {
+        $("#swapStarted").css("display", "none");
+      }, (3 * 1000));
+    }
   })
 
   depositButton.addEventListener('click', async () => {
     var depositAmountUSDC = $("#depositAmountUSDC").val(); //put in some checks here? positive number, between x and y, user has enough funds...
-    console.log(`Depositing ${depositAmountUSDC} of USDC to the BEMQ account`);
-    $("#swapStarted").css("display", "block");
-    $("#swapStarted").text(`Depositing ${depositAmountUSDC} of USDC to the BEMQ account`);
+    console.log(`Depositing ${depositAmountUSDC} of USDC to the SMEB account`);
+    $("#swapStarted").css("display", "inline-block");
+    $("#swapStarted").text(`Depositing ${depositAmountUSDC} of USDC to the SMEB account`);
     var estimatedGasLimit = await dappContract_signer.estimateGas.depositUserFunds(depositAmountUSDC * 10 ** 6);
-    console.log("got here")
-    await dappContract_signer.depositUserFunds(depositAmountUSDC * 10 ** 6, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+    let tx = await dappContract_signer.depositUserFunds(depositAmountUSDC * 10 ** 6, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+    let result = await tx.wait();
+    if (result) {
+      $("#swapStarted").css("display", "inline-block");
+      $("#swapStarted").text(`Deposit successful`);
+      await displayBalances();
+      await displayUSDBalances();
+      setTimeout(function () {
+        $("#swapStarted").css("display", "none");
+      }, (3 * 1000));
+    }
   })
 
   withdrawToUserButton.addEventListener('click', async () => {
     //put in gas estimation here
-    await dappContract_signer.withdrawUserFunds(user);
+    var estimatedGasLimit = await dappContract_signer.estimateGas.withdrawUserFunds(user);
+    let tx = await dappContract_signer.withdrawUserFunds(user, { gasLimit: parseInt(estimatedGasLimit * 1.2) });
+    let result = await tx.wait();
+    if (result) {
+      $("#swapStarted").css("display", "inline-block");
+      $("#swapStarted").text(`Withdraw successful`);
+      await displayBalances();
+      await displayUSDBalances();
+      setTimeout(function () {
+        $("#swapStarted").css("display", "none");
+      }, (3 * 1000));
+    }
   })
 }
 
@@ -128,11 +179,17 @@ async function displayUSDBalances() {
 
   var total_in_usd = wmatic_usd + sand_usd + wbtc_usd + weth_usd;
   TotalInUSD.innerHTML = '$ ' + total_in_usd.toFixed(2);
-  var userShares = (await dappContract_provider.getUserShares(user)).toNumber()
-  var totalShares = (await dappContract_provider.totalNumberOfShares()).toNumber() //lesson here - overwriting public variable getter function??
+  if (user) {
+    var userShares = (await dappContract_provider.getUserShares(user)).toNumber()
+    var totalShares = (await dappContract_provider.totalNumberOfShares()).toNumber() //lesson here - overwriting public variable getter function??
 
-  UserShareInPerc.innerHTML = (userShares / totalShares * 100).toFixed(1) + '%'; //can add a percentage thingie here!
-  USERshareInUSD.innerHTML = '$ ' + (userShares / totalShares * total_in_usd).toFixed(2); //TODO - neaten up this fix
+    UserShareInPerc.innerHTML = (userShares / totalShares * 100).toFixed(1) + '%'; //can add a percentage thingie here!
+    USERshareInUSD.innerHTML = '$ ' + (userShares / totalShares * total_in_usd).toFixed(2); //TODO - neaten up this fix
+  } else {
+    UserShareInPerc.innerHTML = "NA"
+    USERshareInUSD.innerHTML = "NA"
+  }
+
 }
 
 async function getTokenInfo(accountOrContract) {
@@ -159,15 +216,9 @@ async function getTokenInfo(accountOrContract) {
 
   for (let coin of array_coins) {
     coin.balance = await getBalance(coin.address, accountOrContract);
-    console.log(coin.balance.toString())
     coin.usd_exchange_rate = await getExchangeRate(coin.oracleAddress);
-    console.log(coin.usd_exchange_rate.toString())
-
     coin.decimals = await getDecimals(coin.address);
-    console.log(coin.decimals)
-
     coin.usd_balance = parseFloat((parseFloat(ethers.utils.formatUnits(coin.balance, coin.decimals)) * parseFloat(ethers.utils.formatUnits(coin.usd_exchange_rate, 8))).toFixed(6));
-    console.log(coin.usd_balance)
 
     total_in_usd += coin.usd_balance;
   }
