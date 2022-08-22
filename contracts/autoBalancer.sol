@@ -47,7 +47,7 @@ contract autoBalancer is KeeperCompatibleInterface {
     uint256 public totalNumberOfShares;
 
     uint256 public lastTimeStamp;
-    uint256 public interval = 60;
+    uint256 public interval = 3600;
 
     mapping(address => uint256) public userNumberOfShares;
 
@@ -182,26 +182,22 @@ contract autoBalancer is KeeperCompatibleInterface {
                 array_coins[minCoin_index].diff_from_average = 0;
                 // then we convert amounts[j] from usd to maxCoin currency (because we're always swapping from maxCoin)
                 amounts[j] =
-                    (amounts[j] *
-                        int256(
-                            10 **
-                                (uint256(array_coins[maxCoin_index].decimals) -
-                                    10)
-                        )) /
-                    int256(array_coins[maxCoin_index].usd_exchange_rate);
+                    (amounts[j] * int256(10**8)) /
+                    int256(array_coins[maxCoin_index].usd_exchange_rate) /
+                    int256(
+                        10**(18 - uint256(array_coins[maxCoin_index].decimals))
+                    );
             } else {
                 amounts[j] = abs(array_coins[maxCoin_index].diff_from_average);
                 array_coins[minCoin_index].diff_from_average += amounts[j];
                 array_coins[maxCoin_index].diff_from_average = 0;
 
                 amounts[j] =
-                    (amounts[j] *
-                        int256(
-                            10 **
-                                (uint256(array_coins[maxCoin_index].decimals) -
-                                    10)
-                        )) /
-                    int256(array_coins[maxCoin_index].usd_exchange_rate);
+                    (amounts[j] * int256(10**8)) /
+                    int256(array_coins[maxCoin_index].usd_exchange_rate) /
+                    int256(
+                        10**(18 - uint256(array_coins[maxCoin_index].decimals))
+                    );
             }
 
             //we determine the paths that the swap will take (beginning and end)

@@ -819,18 +819,18 @@
 			]
 		},
 		"contracts/autoBalancer.sol": {
-			"keccak256": "0x4c0eb45735f718f768041c95b80a9606b83ceadd601b46351fceccdce9d6c725",
+			"keccak256": "0x155e6ad51517955156994d04ec63021612853a86f3ee07eecbfcdc6fcdcb68f3",
 			"urls": [
-				"bzz-raw://d7c4a90d9a050f56629b07d10b93b3b72ea4b3dc8ab486591bb423a726cc226c",
-				"dweb:/ipfs/QmZn4nXpGJt7bL1QFFpVMDNnLapsUzkwe6ywEdLZtDUzVL"
+				"bzz-raw://648830c1c7be3098765c621eada6cfbf1545bd8d68afb814d88e9346b82cc3b5",
+				"dweb:/ipfs/QmUyXhfvYMiFHARHTyZoJi4NXLAigXypPD4ngw3Gs1AAFN"
 			]
 		},
 		"contracts/interfaces/IERC20.sol": {
-			"keccak256": "0x6eec7cb545b600cbb7374c54b7fa7ea4df2e6120c514db125fb241d22c06c0ad",
+			"keccak256": "0xd70c682b0fe0b8496674d19492e1e41207c18d1f801fbabcc0f0e893c9b79766",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://880fcea3c7b8fb2048d9bdbc202e04176e3c3d2500e07da2f65a21e06dc13ae9",
-				"dweb:/ipfs/Qmbr9q4z84Z5XUcb6corAUS4xNUqmaqyq2AqrAGUahxXg8"
+				"bzz-raw://99e608a06a35287a6f7a7939a252fec91de1e5e7c68547a273951284e98dcde8",
+				"dweb:/ipfs/QmRTakubR5C7czSChMLfkhmKHwGdhBZXYFq3LJEUHfGhGw"
 			]
 		},
 		"contracts/interfaces/IUniswapV2Router01.sol": {
