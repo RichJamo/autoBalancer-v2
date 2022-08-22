@@ -186,7 +186,7 @@ contract autoBalancer is KeeperCompatibleInterface {
                     int256(array_coins[maxCoin_index].usd_exchange_rate);
             } else {
                 amounts[j] = abs(array_coins[maxCoin_index].diff_from_average);
-                array_coins[minCoin_index].diff_from_average -= amounts[j];
+                array_coins[minCoin_index].diff_from_average += amounts[j];
                 array_coins[maxCoin_index].diff_from_average = 0;
                 amounts[j] =
                     (amounts[j] * (10**8)) /
