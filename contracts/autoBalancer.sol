@@ -3,13 +3,13 @@ pragma experimental ABIEncoderV2;
 //import statements go here
 import "./interfaces/IUniswapV2Router02.sol";
 import "./interfaces/IUniswapV2Router01.sol";
-import "./interfaces/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 // KeeperCompatible.sol imports the functions from both ./KeeperBase.sol and
 // ./interfaces/KeeperCompatibleInterface.sol
 import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
-contract autoBalancer is KeeperCompatibleInterface {
+contract autoBalancer is ERC20, KeeperCompatibleInterface {
     address public constant USDC_ADDRESS =
         0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
 
@@ -64,6 +64,8 @@ contract autoBalancer is KeeperCompatibleInterface {
         int256 diff_from_average;
         uint256 usd_exchange_rate;
     }
+
+    constructor() ERC20("autoBalancer", "ABA") {}
 
     function setInterval(uint256 new_interval) public {
         interval = new_interval;
@@ -120,7 +122,7 @@ contract autoBalancer is KeeperCompatibleInterface {
         uint256 total_in_usd = 0;
 
         for (uint8 i = 0; i < array_coins.length; i++) {
-            IERC20 coin_instance = IERC20(array_coins[i].tokenAddress);
+            ERC20 coin_instance = ERC20(array_coins[i].tokenAddress);
             array_coins[i].balance = coin_instance.balanceOf(address(this));
             array_coins[i].usd_exchange_rate = uint256(
                 getLatestPrice(array_coins[i].oracleAddress)
@@ -290,12 +292,7 @@ contract autoBalancer is KeeperCompatibleInterface {
 
     function updateSharesOnWithdrawal(address user) public {
         //make this ownable - only contract itself can update this?
-        require(
-            userNumberOfShares[user] > 0,
-            "Error - This user has no shares"
-        );
-        totalNumberOfShares -= userNumberOfShares[user];
-        userNumberOfShares[user] = 0;
+        _burn(user, balanceOf(user));
     }
 
     function getUserShares(address user)
@@ -311,13 +308,13 @@ contract autoBalancer is KeeperCompatibleInterface {
         address spender_address,
         uint256 amount_to_approve
     ) public {
-        IERC20(token_address).approve(spender_address, amount_to_approve);
+        ERC20(token_address).approve(spender_address, amount_to_approve);
     }
 
     receive() external payable {}
 
     function depositUserFunds(uint256 amount_) public {
-        IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), amount_);
+        ERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), amount_);
 
         uint256 WMATIC_balanceInUSD = getUSDTokenBalanceOf(
             WMATIC_ADDRESS,
@@ -363,7 +360,7 @@ contract autoBalancer is KeeperCompatibleInterface {
         if (Total_in_USD > 0) {
             updateSharesOnDeposit(msg.sender, Total_in_USD, amount_);
         } else {
-            setSharesFirstTime(msg.sender);
+            setSharesFirstTime(msg.sender, amount_);
         }
     }
 
@@ -454,9 +451,8 @@ contract autoBalancer is KeeperCompatibleInterface {
         );
     }
 
-    function setSharesFirstTime(address user) public {
-        userNumberOfShares[user] = 100000000;
-        totalNumberOfShares = userNumberOfShares[user];
+    function setSharesFirstTime(address user, uint256 deposit_amount) public {
+        _mint(user, deposit_amount);
     }
 
     function updateSharesOnDeposit(
@@ -465,16 +461,9 @@ contract autoBalancer is KeeperCompatibleInterface {
         uint256 deposit_amount
     ) public {
         //make this ownable - only contract itself can update this?
-        uint256 newSharesForUser = (deposit_amount * (totalNumberOfShares)) /
+        uint256 newSharesForUser = (deposit_amount * (totalSupply())) /
             (total_in_USD);
-        totalNumberOfShares = totalNumberOfShares + newSharesForUser;
-        if (userNumberOfShares[user] > 0) {
-            userNumberOfShares[user] =
-                userNumberOfShares[user] +
-                newSharesForUser;
-        } else {
-            userNumberOfShares[user] = newSharesForUser;
-        }
+        _mint(user, newSharesForUser);
     }
 
     function withdrawUserFunds(address user) public {
@@ -516,7 +505,7 @@ contract autoBalancer is KeeperCompatibleInterface {
         address token_address,
         address address_to
     ) public {
-        IERC20 token_ = IERC20(token_address); //is this right?
+        ERC20 token_ = ERC20(token_address); //is this right?
 
         token_.transfer(address_to, amount_);
     }
@@ -524,7 +513,7 @@ contract autoBalancer is KeeperCompatibleInterface {
     function approveSpendingWholeBalance(address _token, address _spender)
         public
     {
-        uint256 tokenBalance = IERC20(_token).balanceOf(address(this));
+        uint256 tokenBalance = ERC20(_token).balanceOf(address(this));
         approve_spending(_token, _spender, tokenBalance);
     }
 
@@ -544,7 +533,7 @@ contract autoBalancer is KeeperCompatibleInterface {
         view
         returns (uint256 token_balance)
     {
-        IERC20 _token = IERC20(token_address);
+        ERC20 _token = ERC20(token_address);
         token_balance = _token.balanceOf(user_address);
         return token_balance;
     }
@@ -564,4 +553,27 @@ contract autoBalancer is KeeperCompatibleInterface {
             _deadline
         );
     }
+
+    // function _mint(address account, uint256 amount) internal override {
+    //     require(account != address(0), "ERC20: mint to the zero address");
+
+    //     _beforeTokenTransfer(address(0), account, amount);
+
+    //     _totalSupply = _totalSupply.add(amount);
+    //     _balances[account] = _balances[account].add(amount);
+    //     emit Transfer(address(0), account, amount);
+    // }
+
+    // function _burn(address account, uint256 amount) internal override {
+    //     require(account != address(0), "ERC20: burn from the zero address");
+
+    //     _beforeTokenTransfer(account, address(0), amount);
+
+    //     _balances[account] = _balances[account].sub(
+    //         amount,
+    //         "ERC20: burn amount exceeds balance"
+    //     );
+    //     _totalSupply = _totalSupply.sub(amount);
+    //     emit Transfer(account, address(0), amount);
+    // }
 }
