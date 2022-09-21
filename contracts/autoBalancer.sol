@@ -294,8 +294,12 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
 
     receive() external payable {}
 
-    function depositUserFunds(uint256 amount_) public {
-        ERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), amount_);
+    function depositUserFunds(uint256 deposit_amount) public {
+        ERC20(USDC_ADDRESS).transferFrom(
+            msg.sender,
+            address(this),
+            deposit_amount
+        );
 
         uint256 WMATIC_balanceInUSD = getUSDTokenBalanceOf(
             WMATIC_ADDRESS,
@@ -323,7 +327,7 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
             WETH_balanceInUSD +
             WBTC_balanceInUSD;
 
-        approve_spending(USDC_ADDRESS, QUICKSWAP_ROUTER, amount_);
+        approve_spending(USDC_ADDRESS, QUICKSWAP_ROUTER, deposit_amount);
 
         if (portfolio_value_usd > 0) {
             swapProportionately(
@@ -332,18 +336,12 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
                 WETH_balanceInUSD,
                 WBTC_balanceInUSD,
                 portfolio_value_usd,
-                amount_
+                deposit_amount
             );
-            uint256 portfolio_increase_usd = getUSDPortfolioTotal() -
-                portfolio_value_usd;
-            mintOnDeposit(
-                msg.sender,
-                portfolio_value_usd,
-                portfolio_increase_usd
-            );
+            mintOnDeposit(msg.sender, portfolio_value_usd);
         } else {
-            swapIntoFourEqualParts(amount_);
-            _mint(msg.sender, amount_);
+            swapIntoFourEqualParts(deposit_amount);
+            _mint(msg.sender, deposit_amount);
         }
     }
 
@@ -463,12 +461,10 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
         );
     }
 
-    function mintOnDeposit(
-        address user,
-        uint256 portfolio_value_usd,
-        uint256 portfolio_increase_usd
-    ) public {
+    function mintOnDeposit(address user, uint256 portfolio_value_usd) public {
         //make this ownable - only contract itself can update this?
+        uint256 portfolio_increase_usd = getUSDPortfolioTotal() -
+            portfolio_value_usd;
         uint256 mintAmount = (portfolio_increase_usd * totalSupply()) /
             (portfolio_value_usd);
         _mint(user, mintAmount);
