@@ -48,8 +48,8 @@
       ]
     },
     "/Users/richardjamieson/Documents/GitHub/BentoBoxBalancer/contracts/autoBalancer.sol": {
-      "lastModificationDate": 1663764567124,
-      "contentHash": "ff03561ea94abaf61129eafdf3c0b4e7",
+      "lastModificationDate": 1663765619841,
+      "contentHash": "5c41fda52507424b92bfc13ac7b75bb9",
       "sourceName": "contracts/autoBalancer.sol",
       "solcConfig": {
         "version": "0.8.13",

@@ -44,6 +44,7 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
 
     uint256 public lastTimeStamp;
     uint256 public interval = 3600;
+    uint256 public threshold_percentage = 5;
 
     IUniswapV2Router02 public quickSwapRouter =
         IUniswapV2Router02(QUICKSWAP_ROUTER);
@@ -91,7 +92,8 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
         override
         returns (bool upkeepNeeded, bytes memory performData)
     {
-        upkeepNeeded = (block.timestamp - lastTimeStamp) > interval;
+        // upkeepNeeded = (block.timestamp - lastTimeStamp) > interval;
+
         //we create the coin array and coin objects
         Coin[] memory array_coins = new Coin[](4);
 
@@ -135,6 +137,13 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
             array_coins[i].diff_from_average =
                 int256(array_coins[i].usd_balance) -
                 int256(total_in_usd / (array_coins.length));
+            ///
+            /// NOTE - this is where upkeepNeeded gets set!
+            if (
+                (uint256(abs(array_coins[i].diff_from_average)) * 100) /
+                    total_in_usd >
+                threshold_percentage
+            ) upkeepNeeded = true;
         }
 
         int256 comparison_variable; // default 0, the lowest value of `uint256`
