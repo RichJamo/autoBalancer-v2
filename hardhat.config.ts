@@ -1,14 +1,13 @@
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
-require('@nomiclabs/hardhat-waffle');
-require('dotenv').config()
-require("solidity-coverage");
-require("@nomiclabs/hardhat-etherscan");
-require("@nomiclabs/hardhat-solhint");
-
-// const { accounts } = require('./configs/addresses.js');
-// const { ethers } = require('hardhat');
+import { HardhatUserConfig } from "hardhat/config";
+import '@nomiclabs/hardhat-waffle';
+import "solidity-coverage";
+import "@nomiclabs/hardhat-etherscan";
+import "@nomiclabs/hardhat-solhint";
+import { config as dotenvConfig } from "dotenv";
+import { resolve } from "path";
+dotenvConfig({ path: resolve(__dirname, "./.env") });
+// const { accounts } = import './configs/addresses.js';
+// const { ethers } = import 'hardhat';
 
 const chainIds = {
   hardhat: 31337,
@@ -38,7 +37,7 @@ if (!polygonScanApiKey) {
   throw new Error("Please set your POLYGONSCAN_API_KEY in a .env file");
 }
 
-module.exports = {
+const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
@@ -118,4 +117,4 @@ module.exports = {
   }
 };
 
-
+export default config;
