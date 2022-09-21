@@ -7,6 +7,14 @@ import { Contract } from "ethers";
 
 const ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff";
 const USDC = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174";
+const WMATIC_ADDRESS =
+    "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270";
+const SAND_ADDRESS =
+    "0xBbba073C31bF03b8ACf7c28EF0738DeCF3695683";
+const WETH_ADDRESS =
+    "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
+const WBTC_ADDRESS =
+    "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6";
 
 describe(`Testing AutoBalancer contract`, () => {
     let users: any;
@@ -55,6 +63,30 @@ describe(`Testing AutoBalancer contract`, () => {
             var usdcBalance2 = await usdc.balanceOf(user1.address);
 
             expect(usdcBalance2).to.equal(0);
+        })
+        it('Should give portfolio a non-zero wmatic balance', async () => {
+            var wmatic = await ethers.getContractAt(token_abi, WMATIC_ADDRESS);
+            var wmaticBalance = await wmatic.balanceOf(autoBalancer.address);
+
+            expect(wmaticBalance).to.be.gt(0);
+        })
+        it('Should give portfolio a non-zero sand balance', async () => {
+            var sand = await ethers.getContractAt(token_abi, SAND_ADDRESS);
+            var sandBalance = await sand.balanceOf(autoBalancer.address);
+
+            expect(sandBalance).to.be.gt(0);
+        })
+        it('Should give portfolio a non-zero weth balance', async () => {
+            var weth = await ethers.getContractAt(token_abi, WETH_ADDRESS);
+            var wethBalance = await weth.balanceOf(autoBalancer.address);
+
+            expect(wethBalance).to.be.gt(0);
+        })
+        it('Should give portfolio a non-zero wbtc balance', async () => {
+            var wbtc = await ethers.getContractAt(token_abi, WBTC_ADDRESS);
+            var wbtcBalance = await wbtc.balanceOf(autoBalancer.address);
+
+            expect(wbtcBalance).to.be.gt(0);
         })
         it('Should withdraw USDC from autoBalancer - resulting in receipt token balance returning to zero', async () => {
             await autoBalancer.withdrawUserFunds(user1.address);
