@@ -58,6 +58,17 @@ module.exports = {
       maxPriorityFeePerGas: 80000000000,
       confirmations: 2,    // # of confs to wait between deployments. (default: 0)
       timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
+      skipDryRun: false     // Skip dry run before migrations? (default: false for public nets )
+    },
+    mumbai: {
+      provider: () => new HDWalletProvider(mnemonic, 'https://polygon-mumbai.g.alchemy.com/v2/oFfvEpXYjGo8Nj4QQIkU3kXd6Z0JvfJZ'),
+      network_id: 80001,
+      // gasPrice: 135000000000,
+      // gas: 27000000,
+      // maxFeePerGas: 100000000000,
+      // maxPriorityFeePerGas: 80000000000,
+      confirmations: 2,    // # of confs to wait between deployments. (default: 0)
+      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
       skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     },
     // harmony: {
@@ -97,10 +108,10 @@ module.exports = {
       version: "^0.8.0",    // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
-      //  optimizer: {
-      //    enabled: false,
-      //    runs: 200
-      //  },
+      optimizer: {
+        enabled: true,
+        runs: 200
+      },
       //  evmVersion: "byzantium"
       // }
     },

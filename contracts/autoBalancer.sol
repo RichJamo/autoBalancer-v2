@@ -5,8 +5,6 @@ import "./interfaces/IUniswapV2Router02.sol";
 import "./interfaces/IUniswapV2Router01.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-// KeeperCompatible.sol imports the functions from both ./KeeperBase.sol and
-// ./interfaces/KeeperCompatibleInterface.sol
 import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
 contract autoBalancer is ERC20, KeeperCompatibleInterface {
@@ -44,12 +42,8 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
     address public constant QUICKSWAP_ROUTER =
         0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
 
-    uint256 public totalNumberOfShares;
-
     uint256 public lastTimeStamp;
     uint256 public interval = 3600;
-
-    mapping(address => uint256) public userNumberOfShares;
 
     IUniswapV2Router02 public quickSwapRouter =
         IUniswapV2Router02(QUICKSWAP_ROUTER);
@@ -290,19 +284,6 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
         return x >= 0 ? x : -x;
     }
 
-    function updateSharesOnWithdrawal(address user) public {
-        //make this ownable - only contract itself can update this?
-        _burn(user, balanceOf(user));
-    }
-
-    function getUserShares(address user)
-        public
-        view
-        returns (uint256 userShares)
-    {
-        return userNumberOfShares[user];
-    }
-
     function approve_spending(
         address token_address,
         address spender_address,
@@ -358,9 +339,9 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
         }
 
         if (Total_in_USD > 0) {
-            updateSharesOnDeposit(msg.sender, Total_in_USD, amount_);
+            mintOnDeposit(msg.sender, Total_in_USD, amount_);
         } else {
-            setSharesFirstTime(msg.sender, amount_);
+            mintOnFirstDeposit(msg.sender, amount_);
         }
     }
 
@@ -451,36 +432,32 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
         );
     }
 
-    function setSharesFirstTime(address user, uint256 deposit_amount) public {
+    function mintOnFirstDeposit(address user, uint256 deposit_amount) public {
         _mint(user, deposit_amount);
     }
 
-    function updateSharesOnDeposit(
+    function mintOnDeposit(
         address user,
         uint256 total_in_USD,
         uint256 deposit_amount
     ) public {
         //make this ownable - only contract itself can update this?
-        uint256 newSharesForUser = (deposit_amount * (totalSupply())) /
+        uint256 mintAmount = (deposit_amount * (totalSupply())) /
             (total_in_USD);
-        _mint(user, newSharesForUser);
+        _mint(user, mintAmount);
     }
 
     function withdrawUserFunds(address user) public {
         //do I need an approval here?
 
-        uint256 WMATIC_amount = (userNumberOfShares[user] *
-            (tokenBalanceOf(WMATIC_ADDRESS, address(this)))) /
-            (totalNumberOfShares);
-        uint256 SAND_amount = (userNumberOfShares[user] *
-            (tokenBalanceOf(SAND_ADDRESS, address(this)))) /
-            (totalNumberOfShares);
-        uint256 WETH_amount = (userNumberOfShares[user] *
-            (tokenBalanceOf(WETH_ADDRESS, address(this)))) /
-            (totalNumberOfShares);
-        uint256 WBTC_amount = (userNumberOfShares[user] *
-            (tokenBalanceOf(WBTC_ADDRESS, address(this)))) /
-            (totalNumberOfShares);
+        uint256 WMATIC_amount = (balanceOf(user) *
+            (tokenBalanceOf(WMATIC_ADDRESS, address(this)))) / (totalSupply());
+        uint256 SAND_amount = (balanceOf(user) *
+            (tokenBalanceOf(SAND_ADDRESS, address(this)))) / (totalSupply());
+        uint256 WETH_amount = (balanceOf(user) *
+            (tokenBalanceOf(WETH_ADDRESS, address(this)))) / (totalSupply());
+        uint256 WBTC_amount = (balanceOf(user) *
+            (tokenBalanceOf(WBTC_ADDRESS, address(this)))) / (totalSupply());
 
         approve_spending(WMATIC_ADDRESS, QUICKSWAP_ROUTER, WMATIC_amount);
         approve_spending(SAND_ADDRESS, QUICKSWAP_ROUTER, SAND_amount);
@@ -497,7 +474,7 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
         uint256 USDC_amount = tokenBalanceOf(USDC_ADDRESS, address(this));
         withdraw(USDC_amount, USDC_ADDRESS, user);
 
-        updateSharesOnWithdrawal(user);
+        _burn(user, balanceOf(user));
     }
 
     function withdraw(
@@ -553,27 +530,4 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
             _deadline
         );
     }
-
-    // function _mint(address account, uint256 amount) internal override {
-    //     require(account != address(0), "ERC20: mint to the zero address");
-
-    //     _beforeTokenTransfer(address(0), account, amount);
-
-    //     _totalSupply = _totalSupply.add(amount);
-    //     _balances[account] = _balances[account].add(amount);
-    //     emit Transfer(address(0), account, amount);
-    // }
-
-    // function _burn(address account, uint256 amount) internal override {
-    //     require(account != address(0), "ERC20: burn from the zero address");
-
-    //     _beforeTokenTransfer(account, address(0), amount);
-
-    //     _balances[account] = _balances[account].sub(
-    //         amount,
-    //         "ERC20: burn amount exceeds balance"
-    //     );
-    //     _totalSupply = _totalSupply.sub(amount);
-    //     emit Transfer(account, address(0), amount);
-    // }
 }
