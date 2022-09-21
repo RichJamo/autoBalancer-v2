@@ -106,6 +106,11 @@ describe(`Testing AutoBalancer contract`, () => {
 
             expect(receiptTokenBalanceUser1AfterDeposit).to.be.closeTo(receiptTokenBalanceUser2AfterDeposit, 20000);
         })
+        it('Should return false from checkUpKeep function', async () => {
+            const response = await autoBalancer.checkUpkeep("0x");
+
+            expect(response[0]).to.equal(false);
+        })
         it('Should withdraw USDC from autoBalancer - resulting in receipt token balance returning to zero', async () => {
             await autoBalancer.withdrawUserFunds(user1.address);
 
