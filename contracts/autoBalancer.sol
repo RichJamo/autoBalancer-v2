@@ -318,30 +318,32 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
             8
         );
 
-        uint256 Total_in_USD = WMATIC_balanceInUSD +
+        uint256 portfolio_value_usd = WMATIC_balanceInUSD +
             SAND_balanceInUSD +
             WETH_balanceInUSD +
             WBTC_balanceInUSD;
 
         approve_spending(USDC_ADDRESS, QUICKSWAP_ROUTER, amount_);
 
-        if (Total_in_USD > 0) {
+        if (portfolio_value_usd > 0) {
             swapProportionately(
                 WMATIC_balanceInUSD,
                 SAND_balanceInUSD,
                 WETH_balanceInUSD,
                 WBTC_balanceInUSD,
-                Total_in_USD,
+                portfolio_value_usd,
                 amount_
+            );
+            uint256 portfolio_increase_usd = getUSDPortfolioTotal() -
+                portfolio_value_usd;
+            mintOnDeposit(
+                msg.sender,
+                portfolio_value_usd,
+                portfolio_increase_usd
             );
         } else {
             swapIntoFourEqualParts(amount_);
-        }
-
-        if (Total_in_USD > 0) {
-            mintOnDeposit(msg.sender, Total_in_USD, amount_);
-        } else {
-            mintOnFirstDeposit(msg.sender, amount_);
+            _mint(msg.sender, amount_);
         }
     }
 
@@ -355,6 +357,35 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
             (tokenBalanceOf(token_address, address(this)) *
                 (uint256(getLatestPrice(oracle_address)))) /
             (10**(token_decimals + 2));
+    }
+
+    function getUSDPortfolioTotal() public view returns (uint256 Total_in_USD) {
+        uint256 WMATIC_balanceInUSD = getUSDTokenBalanceOf(
+            WMATIC_ADDRESS,
+            MATIC_USD_ORACLE,
+            18
+        );
+        uint256 SAND_balanceInUSD = getUSDTokenBalanceOf(
+            SAND_ADDRESS,
+            SAND_USD_ORACLE,
+            18
+        );
+        uint256 WETH_balanceInUSD = getUSDTokenBalanceOf(
+            WETH_ADDRESS,
+            ETH_USD_ORACLE,
+            18
+        );
+        uint256 WBTC_balanceInUSD = getUSDTokenBalanceOf(
+            WBTC_ADDRESS,
+            BTC_USD_ORACLE,
+            8
+        );
+
+        return
+            WMATIC_balanceInUSD +
+            SAND_balanceInUSD +
+            WETH_balanceInUSD +
+            WBTC_balanceInUSD;
     }
 
     function swapProportionately(
@@ -432,18 +463,14 @@ contract autoBalancer is ERC20, KeeperCompatibleInterface {
         );
     }
 
-    function mintOnFirstDeposit(address user, uint256 deposit_amount) public {
-        _mint(user, deposit_amount);
-    }
-
     function mintOnDeposit(
         address user,
-        uint256 total_in_USD,
-        uint256 deposit_amount
+        uint256 portfolio_value_usd,
+        uint256 portfolio_increase_usd
     ) public {
         //make this ownable - only contract itself can update this?
-        uint256 mintAmount = (deposit_amount * (totalSupply())) /
-            (total_in_USD);
+        uint256 mintAmount = (portfolio_increase_usd * totalSupply()) /
+            (portfolio_value_usd);
         _mint(user, mintAmount);
     }
 
