@@ -41,17 +41,18 @@ describe(`Testing AutoBalancer contract`, () => {
         //create a router to swap into USDC
         router = await ethers.getContractAt(IUniRouter02_abi, ROUTER);
         WNATIVE = await router.WETH();
-        await router.connect(user1).swapExactETHForTokens(0, [WNATIVE, USDC], user1.address, Date.now() + 900, { value: ethers.utils.parseEther("1000") }) //USDC 6 decimals
+        await router.swapExactETHForTokens(0, [WNATIVE, USDC], user1.address, Date.now() + 900, { value: ethers.utils.parseEther("1000") }) //USDC 6 decimals
+        await router.connect(user2).swapExactETHForTokens(0, [WNATIVE, USDC], user2.address, Date.now() + 900, { value: ethers.utils.parseEther("1000") }) //USDC 6 decimals
+        usdc = await ethers.getContractAt(token_abi, USDC);
+        receiptToken = await ethers.getContractAt(token_abi, autoBalancer.address);
     });
 
     describe(`Testing depositing into autoBalancer, withdrawing from autoBalancer:
     `, () => {
         it('Should deposit USDC from user 1 into autoBalancer - leading to an increase in receipt tokens for user 1', async () => {
-            usdc = await ethers.getContractAt(token_abi, USDC);
             var usdcBalance = await usdc.balanceOf(user1.address);
             await usdc.approve(autoBalancer.address, usdcBalance);
 
-            receiptToken = await ethers.getContractAt(token_abi, autoBalancer.address);
             const receiptTokenBalanceBeforeDeposit = await receiptToken.balanceOf(user1.address);
 
             await autoBalancer.depositUserFunds(usdcBalance); //todo - change min in amount from 0
@@ -88,6 +89,18 @@ describe(`Testing AutoBalancer contract`, () => {
 
             expect(wbtcBalance).to.be.gt(0);
         })
+        it('Should deposit USDC from user 2 into autoBalancer - leading to an increase in receipt tokens for user 2', async () => {
+            var usdcBalance = await usdc.balanceOf(user2.address);
+            await usdc.connect(user2).approve(autoBalancer.address, usdcBalance);
+
+            const receiptTokenBalanceBeforeDeposit = await receiptToken.balanceOf(user2.address);
+
+            await autoBalancer.connect(user2).depositUserFunds(usdcBalance); //todo - change min in amount from 0
+            var supply = await autoBalancer.totalSupply();
+            const receiptTokenBalanceAfterDeposit = await receiptToken.balanceOf(user2.address);
+            console.log(receiptTokenBalanceAfterDeposit / supply);
+            expect(receiptTokenBalanceAfterDeposit).to.be.gt(receiptTokenBalanceBeforeDeposit);
+        })
         it('Should withdraw USDC from autoBalancer - resulting in receipt token balance returning to zero', async () => {
             await autoBalancer.withdrawUserFunds(user1.address);
 
@@ -99,6 +112,11 @@ describe(`Testing AutoBalancer contract`, () => {
             var usdcBalance3 = await usdc.balanceOf(user1.address);
 
             expect(usdcBalance3).to.be.gt(0);
+        })
+        it('Should be the case that user 2 now holds all receipt tokens', async () => {
+            var supply = await autoBalancer.totalSupply()
+            const receiptTokenBalanceAfterWithdrawal = await receiptToken.balanceOf(user2.address);
+            expect(receiptTokenBalanceAfterWithdrawal).to.equal(supply);
         })
     })
 })
