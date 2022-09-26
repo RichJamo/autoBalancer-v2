@@ -1,0 +1,50 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "Migrations",
+  "sourceName": "contracts/Migrations.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "last_completed_migration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "completed",
+          "type": "uint256"
+        }
+      ],
+      "name": "setCompleted",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080806040523461002857600080546001600160a01b031916331790556101f6908161002e8239f35b600080fdfe608080604052600436101561001357600080fd5b6000803560e01c918263445df0ac146100a4575081638da5cb5b14610051575063fdacd57614610044575b38600080fd5b61004c6100e0565b61003e565b346100a157807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126100a15773ffffffffffffffffffffffffffffffffffffffff6020915416604051908152f35b80fd5b346100dc57817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126100dc576020906001548152f35b5080fd5b50346101bb5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101bb5773ffffffffffffffffffffffffffffffffffffffff60005416330361013757600435600155005b60846040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603360248201527f546869732066756e6374696f6e206973207265737472696374656420746f207460448201527f686520636f6e74726163742773206f776e6572000000000000000000000000006064820152fd5b600080fdfea2646970667358221220c88b1004c89261b792a25f3f80f86edf7b5181bc36be21cf3f3061bfa3ccdb9864736f6c634300080d0033",
+  "deployedBytecode": "0x608080604052600436101561001357600080fd5b6000803560e01c918263445df0ac146100a4575081638da5cb5b14610051575063fdacd57614610044575b38600080fd5b61004c6100e0565b61003e565b346100a157807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126100a15773ffffffffffffffffffffffffffffffffffffffff6020915416604051908152f35b80fd5b346100dc57817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126100dc576020906001548152f35b5080fd5b50346101bb5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101bb5773ffffffffffffffffffffffffffffffffffffffff60005416330361013757600435600155005b60846040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152603360248201527f546869732066756e6374696f6e206973207265737472696374656420746f207460448201527f686520636f6e74726163742773206f776e6572000000000000000000000000006064820152fd5b600080fdfea2646970667358221220c88b1004c89261b792a25f3f80f86edf7b5181bc36be21cf3f3061bfa3ccdb9864736f6c634300080d0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

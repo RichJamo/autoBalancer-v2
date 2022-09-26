@@ -1,0 +1,987 @@
+{
+	"compiler": {
+		"version": "0.6.12+commit.27d51765"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "BENTOBOX_MASTER_CONTRACT_ADDRESS",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "BTC_USD_ORACLE",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "BentoMasterContract",
+				"outputs": [
+					{
+						"internalType": "contract IBentoBoxV1",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "token_address",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "user_address",
+						"type": "address"
+					}
+				],
+				"name": "BentoTokenBalanceOf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "token_balance",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "ETH_USD_ORACLE",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "MATIC_USD_ORACLE",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "SUSHISWAP_ROUTER",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "SUSHIToUSDCPath",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "SUSHI_ADDRESS",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "SUSHI_USD_ORACLE",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "USDCToSUSHIPath",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "USDCToWBTCPath",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "USDCToWETHPath",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "USDCToWMATICPath",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "USDC_ADDRESS",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "WBTCToUSDCPath",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "WBTC_ADDRESS",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "WETHToUSDCPath",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "WETH_ADDRESS",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "WMATICToUSDCPath",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "WMATIC_ADDRESS",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_token",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_spender",
+						"type": "address"
+					}
+				],
+				"name": "approveSpendingWholeBalance",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "token_address",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "spender_address",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount_to_approve",
+						"type": "uint256"
+					}
+				],
+				"name": "approve_spending",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "depositAllFourTokensBackToBento",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount_",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "token_address",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "address_from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "address_to",
+						"type": "address"
+					}
+				],
+				"name": "depositToBento",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "token_address",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "address_from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "address_to",
+						"type": "address"
+					}
+				],
+				"name": "depositTokenBalanceToBento",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount_",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "token_address",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "address_from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "address_to",
+						"type": "address"
+					}
+				],
+				"name": "depositUserFunds",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_oracle_address",
+						"type": "address"
+					}
+				],
+				"name": "getLatestPrice",
+				"outputs": [
+					{
+						"internalType": "int256",
+						"name": "",
+						"type": "int256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "token_address",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "oracle_address",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "token_decimals",
+						"type": "uint256"
+					}
+				],
+				"name": "getUSDBentoTokenBalanceOf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "getUserShares",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "userShares",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "rebalanceOne",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "rebalanceThree",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "registerProtocol",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "setSharesFirstTime",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "sushiSwapRouter",
+				"outputs": [
+					{
+						"internalType": "contract IUniswapV2Router02",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amountIn",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amountOutMin",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address[]",
+						"name": "_path",
+						"type": "address[]"
+					},
+					{
+						"internalType": "address",
+						"name": "_acct",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_deadline",
+						"type": "uint256"
+					}
+				],
+				"name": "swap",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "swapIntoFourEqualParts",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "WMATIC_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "SUSHI_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "WETH_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "WBTC_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalUSDAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "depositAmount",
+						"type": "uint256"
+					}
+				],
+				"name": "swapProportionately",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_token",
+						"type": "address"
+					}
+				],
+				"name": "swapWholeBalanceBackToUSDC",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "totalNumberOfShares",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "token_address",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_share",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "address_from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "address_to",
+						"type": "address"
+					}
+				],
+				"name": "transfer",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "total_in_USD",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "deposit_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "updateSharesOnDeposit",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "updateSharesOnWithdrawal",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "userNumberOfShares",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount_",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "token_address",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "address_from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "address_to",
+						"type": "address"
+					}
+				],
+				"name": "withdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_WMATIC_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_SUSHI_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_WETH_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_WBTC_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "withdrawAllFourTokensFromBento",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "withdrawUserFunds",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount_",
+						"type": "uint256"
+					}
+				],
+				"name": "withdraw_matic",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"stateMutability": "payable",
+				"type": "receive"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"getLatestPrice(address)": {
+					"notice": "Returns the latest price"
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/bentoboxDapp.sol": "bentoboxDapp"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol": {
+			"keccak256": "0x8895ce4f46aba18ee3cdb7b1d180f79edb868225781f60993c7b2181e2ee2583",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://4472c14df5f311d7a2eff1dfa55d9b4d39a21b0a0ff905fcbbf6913551086a4c",
+				"dweb:/ipfs/QmQvwFk1SBaLMm4pmZCz7UEhfaXM8kUWu5VG71VFFuMxjF"
+			]
+		},
+		"@openzeppelin/contracts/math/SafeMath.sol": {
+			"keccak256": "0xcc78a17dd88fa5a2edc60c8489e2f405c0913b377216a5b26b35656b2d0dab52",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://526dc85e1f9b9b45830e202568d267d93dde7a4fcccf4ad7798dadcd92304d3c",
+				"dweb:/ipfs/QmaoXMB972J3cSDLtBq3xBo4jLwqD2uzXTwujtSPqkYVhR"
+			]
+		},
+		"contracts/bentoboxDapp.sol": {
+			"keccak256": "0x98b64b9ce60a9a97dc88f939d93b0569c9ef4b977c9666331d9c5adad039b91c",
+			"urls": [
+				"bzz-raw://6c05a0a1dd92c353d27e9285cc54efc9a9e9e3b18f721effa541a7f132fa6a14",
+				"dweb:/ipfs/QmXvoAcjnjzXANYn6btNzofuZBEED5B7km1B1dv8tm5ptA"
+			]
+		},
+		"contracts/interfaces/BoringMath.sol": {
+			"keccak256": "0x209924450e58615eb14a02cf4a77ade81a1c482371cbb2cfe6f61d156d11a98d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://bf4d7998b04ed117d6828500ab76a0088edc59317545592b2db50a81ddaf8f8c",
+				"dweb:/ipfs/QmXy5BnhLnmGQPS5urNyyPVC7dY414HqEC2imeXwE75KtN"
+			]
+		},
+		"contracts/interfaces/BoringRebase.sol": {
+			"keccak256": "0x822ab426c8b62a1c33d06acd68cd2ebe2a2fe1488d755ad776b5cc68c71f27e7",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://24c7216d635eb2b8415814b06ee365d0dc977f16a169e24917e3cb974c00a4f2",
+				"dweb:/ipfs/QmXJ1x2DGPyDqP69Akph6AS66BN2YxLomaFp4RctLdABDr"
+			]
+		},
+		"contracts/interfaces/IBatchFlashBorrower.sol": {
+			"keccak256": "0x0e11cca885561e2c63072ff8c17d9520bb6fa511e697da2e3a531857783d7ef7",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6611f2816bc4ae9557b2a3b38c8fc39dc6c7dc23399d41f1d9dae4c7d82a00a8",
+				"dweb:/ipfs/QmVbKJUPqX6cwTtnksSmuNXzvUqtPM2zkhZNbce8pwpqpH"
+			]
+		},
+		"contracts/interfaces/IBentoBoxV1.sol": {
+			"keccak256": "0xeb68802e88df710685883f053a3c68829a57a4a522f869e580f8745955409a6b",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://fb6f51aa93e3db217f01a4b19d4fa548cfee8363f7601d0751a50f832459295b",
+				"dweb:/ipfs/QmeGbiKrtgfEdodSsM6ENtcBrgub64mQb9cSCWpGccuucx"
+			]
+		},
+		"contracts/interfaces/IERC20.sol": {
+			"keccak256": "0x71694c9db43e3c0898f1d72616b0b010aa46cf918ed71f989e48f7f6b0354273",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://cf043f7f447c62ed1a1e9b8b31357c32cc5a0637593f3f96ed9ed33a91b17744",
+				"dweb:/ipfs/QmYbAF4VK6KkzNUQjH4svqbNRHuZ8yxSE7px6jouSKp5gx"
+			]
+		},
+		"contracts/interfaces/IFlashBorrower.sol": {
+			"keccak256": "0x63ae9921e0018140ad390e172ed3e66d0caf2fafaa2bde1f99ebfb187307dadb",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://4f00e10a5c2881a289812717f6d6fc5e837c4417575320f45f0ac19ca13c4cde",
+				"dweb:/ipfs/QmUWLkWmFXtumX6iF5De6rDeHk1uo8wUQjorfdn9xLEkUL"
+			]
+		},
+		"contracts/interfaces/IStrategy.sol": {
+			"keccak256": "0xfc6f936c22be620fe3c53f569e8be11917c10f512343970e08c76ed6234a35ae",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8918e8c0e682c90ff25efc0133aa0c68164e1a5f4aa976340928db3b3d34d420",
+				"dweb:/ipfs/QmTnrFxRGDQA4avYeg6rna1b9FSaRYie9Sd7RiiGPpLwbF"
+			]
+		},
+		"contracts/interfaces/IUniswapV2Router01.sol": {
+			"keccak256": "0x1b85febc1b3e11b448f5726566386053a74c8e260338dd8093f5152207b32dff",
+			"urls": [
+				"bzz-raw://4e4626cf2c0342e92d312b03b69da64db9ce13d01e0709ce5da86af6ae9cbae4",
+				"dweb:/ipfs/QmVPZ6DUg88m2Z23xWTitNmvGyvGJqV8QE9wUzYUVQtM9p"
+			]
+		},
+		"contracts/interfaces/IUniswapV2Router02.sol": {
+			"keccak256": "0x0928e66141af8180c94bf0a95a1232698ebf6312cc932a21f729ce6f24137d64",
+			"urls": [
+				"bzz-raw://b1bff1f5e660f93e55d51c6b8dca9125a854b183776260047f9077c6af8e54e2",
+				"dweb:/ipfs/Qmb3dEme5jzPmmD3dNiuNerNvULkkEzTp1UHKY6Josck1U"
+			]
+		}
+	},
+	"version": 1
+}
