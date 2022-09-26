@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>SMEB Index</title>
+
+  <!-- Bootstrap -->
+  <link href="./src/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.14.1/css/mdb.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./src/css/metamask.css" type="text/css">
+  
+  <script src="./src/token_abi.js"></script>
+  <script src="./src/chainlink_abi.js"></script>
+  <script src="./src/router_abi.js"></script>
+  <script src="./src/router_abi_QS.js"></script>
+  <script src="./src/js/ethers.umd.min.js" type="application/javascript"></script>
+  <script src="./src/bento_abi.js"></script>
+  <script src="./src/bento_dapp_abi.js"></script>
+
+</head>
+
+<body>
+  <main class="container-fluid">
+    <header>
+      <h1 class="text-center">BentoBox SMEB Index</h1>
+      <p class="text-center">Rebalancing page - admins only.</p>
+
+    </header>
+
+    <section>
+          <div class="card">
+            <div class="card-body">
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="RegisterProtocol">Register Protocol</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="rebalance_1">Rebalance step 1 (withdraw from Bentobox to Dapp)</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="rebalance_2">Rebalance step 2 (do the 3 swaps)</button>
+              <button class="btn btn-primary btn-lg btn-block mb-3" id="rebalance_3">Rebalance step 3 (deposit back from Dapp to Bentobox)</button>
+            </div>
+          </div>
+    </section>
+
+    <section>
+
+      <div class="alert alert-success" role="alert" id="swapStarted" style="display:none"> </div>
+    </section>
+  </main>
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="./src/js/bootstrap.min.js"></script>
+  <script type="module" src="./src/js/rebalance.js"></script>
+
+
+</body>
+
+</html>

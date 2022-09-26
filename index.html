@@ -19,18 +19,17 @@
   <script src="./src/router_abi.js"></script>
   <script src="./src/router_abi_QS.js"></script>
   <script src="./src/js/ethers.umd.min.js" type="application/javascript"></script>
-  <script src="./src/balancer_dapp_abi.js"></script>
-  <!-- <script src="@metamask/onboarding"></script> -->
-  <!-- Toasters -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" />
+  <script src="./src/bento_abi.js"></script>
+  <script src="./src/bento_dapp_abi.js"></script>
+
 </head>
 
 <body data-new-gr-c-s-check-loaded="14.1028.0" data-gr-ext-installed="">
   <main class="container-fluid">
     <header>
-      <h1 class="text-left">SMEB</h1>
+      <h1 class="text-left">BentoBox SMEB</h1>
       <h4 class="text-left">Non-custodial Automated Portfolio Management</h4>
+
     </header>
 
     <section>
@@ -39,17 +38,18 @@
       <div class="col-xl-8 col-lg-8 col-md-8 col-sm-12 col-12">
         <div class="stats">
 
+
           <div class="row">
-            <h4>Equal Weighted Portfolio <span class="text-muted"> WMATIC SAND WETH WBTC</span></h4>
+            <h4>Equal Weighted Portfolio <span class="text-muted"> WMATIC SUSHI WETH WBTC</span></h4>
             <div class="graph">
               <img src="./src/performance.png" class="rounded" alt="Portfolio performance">
             </div>
             <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
               <div class="display_numbers">
                 <div class="headline_number">
-                  SAND <span class="bigNumber" id="getSANDResult"></span>
+                  SUSHI <span class="bigNumber" id="getSUSHIResult"></span>
                 </div>
-                <div class="byline_number">($ <span id="SANDInUsd"></span> )</div>
+                <div class="byline_number">($ <span id="SUSHIInUsd"></span> )</div>
               </div>
             </div>
 
@@ -80,9 +80,13 @@
                 <div class="byline_number">($ <span id="WBTCInUsd"></span> )</div>
               </div>
             </div>
+
+
+
           </div>
 
           <div class="row">
+
             <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6">
               <div class="display_numbers">
                 <div class="headline_number">
@@ -100,13 +104,23 @@
                 <div class="byline_number">( <span id="UserShareInPerc"></span> )</div>
               </div>
             </div>
+
+
           </div>
+
+
+
         </div>
+
+
 
       </div>
       <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-12">
+
         <div class="btn-holder">
-          <button class="btn btn-primary btn-lg btn-block mb-3" id="connectButton">Connect Wallet</button>
+          <button class="btn btn-primary btn-lg btn-block mb-3" id="ApproveMasterContract">Approve Master
+            Contract</button>
+
         </div>
 
         <div class="approve-box btn-holder">
@@ -116,9 +130,13 @@
         </div>
 
         <div class="btn-holder">
+
           <button class="btn btn-primary btn-lg btn-block mb-3" id="withdraw_BB_to_user">Withdraw my funds</button>
         </div>
+
       </div>
+
+
     </section>
 
     <section>
