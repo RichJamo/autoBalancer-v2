@@ -73,6 +73,6 @@ jobs:
       with:
         category: "/language:${{matrix.language}}"
     
-    - name: slither-action
-      uses: crytic/slither-action@v0.2.0
+#     - name: slither-action
+#       uses: crytic/slither-action@v0.2.0
 
